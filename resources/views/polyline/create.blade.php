@@ -30,6 +30,7 @@
         .custom-label {
             font-weight: bold; /* Tulisan tebal pada label */
         }
+        
     </style>
 @endsection
 
@@ -269,114 +270,132 @@
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const token = document.querySelector('meta[name="api-token"]').getAttribute('content');
-            console.log('Token:', token);
-            
-            const provinceSelect = document.getElementById('province');
-            const kabupatenSelect = document.getElementById('kabupaten');
-            const kecamatanSelect = document.getElementById('kecamatan');
-            const desaSelect = document.getElementById('desa');
+    document.addEventListener('DOMContentLoaded', () => {
+        const token = document.querySelector('meta[name="api-token"]').getAttribute('content');
+        console.log('Token:', token);
+        
+        const provinceSelect = document.getElementById('province');
+        const kabupatenSelect = document.getElementById('kabupaten');
+        const kecamatanSelect = document.getElementById('kecamatan');
+        const desaSelect = document.getElementById('desa');
 
-            fetch('https://gisapis.manpits.xyz/api/mregion', {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Provinces:', data.provinces); // Log data provinces untuk debug
-                data.provinsi.forEach(province => {
+        fetch('https://gisapis.manpits.xyz/api/mregion', {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Provinces:', data.provinsi); // Log data provinces for debugging
+            
+            // Clear existing options
+            provinceSelect.innerHTML = '<option value="">Pilih Provinsi</option>';
+
+            const provinceSet = new Set();
+
+            data.provinsi.forEach(province => {
+                if (!provinceSet.has(province.id)) {
+                    provinceSet.add(province.id);
                     const option = document.createElement('option');
                     option.value = province.id;
                     option.textContent = province.provinsi;
                     provinceSelect.appendChild(option);
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching provinces:', error); // Log error
-            });
-
-            provinceSelect.addEventListener('change', function() {
-                const provinceId = this.value;
-                kabupatenSelect.innerHTML = '<option value="">Pilih Kabupaten</option>';
-                kecamatanSelect.innerHTML = '<option value="">Pilih Kecamatan</option>';
-                desaSelect.innerHTML = '<option value="">Pilih Desa</option>';
-                
-                if (provinceId) {
-                    fetch(`https://gisapis.manpits.xyz/api/kabupaten/${provinceId}`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('Kabupaten:', data.kabupaten); // Log data kabupaten untuk debug
-                        data.kabupaten.forEach(kabupaten => {
-                            const option = document.createElement('option');
-                            option.value = kabupaten.id;
-                            option.textContent = kabupaten.name;
-                            kabupatenSelect.appendChild(option);
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error fetching kabupaten:', error); // Log error
-                    });
                 }
             });
-
-            kabupatenSelect.addEventListener('change', function() {
-                const kabupatenId = this.value;
-                kecamatanSelect.innerHTML = '<option value="">Pilih Kecamatan</option>';
-                desaSelect.innerHTML = '<option value="">Pilih Desa</option>';
-                
-                if (kabupatenId) {
-                    fetch(`https://gisapis.manpits.xyz/api/kecamatan/${kabupatenId}`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('Kecamatan:', data.kecamatan); // Log data kecamatan untuk debug
-                        data.kecamatan.forEach(kecamatan => {
-                            const option = document.createElement('option');
-                            option.value = kecamatan.id;
-                            option.textContent = kecamatan.name;
-                            kecamatanSelect.appendChild(option);
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error fetching kecamatan:', error); // Log error
-                    });
-                }
-            });
-
-            kecamatanSelect.addEventListener('change', function() {
-                const kecamatanId = this.value;
-                desaSelect.innerHTML = '<option value="">Pilih Desa</option>';
-                
-                if (kecamatanId) {
-                    fetch(`https://gisapis.manpits.xyz/api/desa/${kecamatanId}`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('Desa:', data.desa); // Log data desa untuk debug
-                        data.desa.forEach(desa => {
-                            const option = document.createElement('option');
-                            option.value = desa.id;
-                            option.textContent = desa.name;
-                            desaSelect.appendChild(option);
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error fetching desa:', error); // Log error
-                    });
-                }
-            });
+        })
+        .catch(error => {
+            console.error('Error fetching provinces:', error); // Log error
         });
+
+        provinceSelect.addEventListener('change', function() {
+            const provinceId = this.value;
+            kabupatenSelect.innerHTML = '<option value="">Pilih Kabupaten</option>';
+            kecamatanSelect.innerHTML = '<option value="">Pilih Kecamatan</option>';
+            desaSelect.innerHTML = '<option value="">Pilih Desa</option>';
+            
+            if (provinceId) {
+                fetch(`https://gisapis.manpits.xyz/api/kabupaten/${provinceId}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Kabupaten:', data.kabupaten); // Log data kabupaten for debugging
+                    
+                    // Clear existing options
+                    kabupatenSelect.innerHTML = '<option value="">Pilih Kabupaten</option>';
+
+                    data.kabupaten.forEach(kabupaten => {
+                        const option = document.createElement('option');
+                        option.value = kabupaten.id;
+                        option.textContent = kabupaten.value;
+                        kabupatenSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching kabupaten:', error); // Log error
+                });
+            }
+        });
+
+        kabupatenSelect.addEventListener('change', function() {
+            const kabupatenId = this.value;
+            kecamatanSelect.innerHTML = '<option value="">Pilih Kecamatan</option>';
+            desaSelect.innerHTML = '<option value="">Pilih Desa</option>';
+            
+            if (kabupatenId) {
+                fetch(`https://gisapis.manpits.xyz/api/kecamatan/${kabupatenId}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Kecamatan:', data.kecamatan); // Log data kecamatan for debugging
+                    kecamatanSelect.innerHTML = '<option value="">Pilih Kecamatan</option>';
+                    data.kecamatan.forEach(kecamatan => {
+                        const option = document.createElement('option');
+                        option.value = kecamatan.id;
+                        option.textContent = kecamatan.value;
+                        kecamatanSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching kecamatan:', error); // Log error
+                });
+            }
+        });
+
+        kecamatanSelect.addEventListener('change', function() {
+            const kecamatanId = this.value;
+            desaSelect.innerHTML = '<option value="">Pilih Desa</option>';
+            
+            if (kecamatanId) {
+                fetch(`https://gisapis.manpits.xyz/api/desa/${kecamatanId}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Desa:', data.desa); // Log data desa for debugging
+                    desaSelect.innerHTML = '<option value="">Pilih Desa</option>';
+                    data.desa.forEach(desa => {
+                        const option = document.createElement('option');
+                        option.value = desa.id;
+                        option.textContent = desa.value;
+                        desaSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching desa:', error); // Log error
+                });
+            }
+        });
+    });
+
+
+
     </script>
 @endpush
