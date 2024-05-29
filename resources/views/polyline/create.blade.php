@@ -174,7 +174,6 @@
 @endsection
 
 @push('javascript')
-<script src="{{ asset('js/home.js') }}"></script>
 
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -313,24 +312,26 @@ crossorigin=""></script>
         });
 
         // Mendapatkan data eksisting dari API
-    fetch('https://gisapis.manpits.xyz/api/eksisting', {
+    fetch('https://gisapis.manpits.xyz/api/meksisting', {
         headers: {
             Authorization: `Bearer ${token}`,
         }
     })
     .then(response => response.json())
-    console.log(response.data) 
+    console.log(response.data)
     .then(data => {
-        console.log('Eksisting:', data.name); // Log data eksisting untuk debugging
+        
+        console.log('Eksisting:', data.eksisting); // Log data eksisting untuk debugging
         
         // Mengisi dropdown eksisting dengan data dari API
         eksistingSelect.innerHTML = '<option value="">Pilih Material</option>';
-        data.forEach(item => {
+        data.eksisting.forEach(eksisting => {
             const option = document.createElement('option');
-            option.value = item.id;
-            option.textContent = item.nama;
+            option.value = eksisting.id;
+            option.textContent = eksisting.eksisting;
             eksistingSelect.appendChild(option);
         });
+
     })
     .catch(error => {
         console.error('Error fetching eksisting:', error); // Log error
@@ -359,7 +360,7 @@ crossorigin=""></script>
     });
 
     // Mendapatkan data jenis jalan dari API
-    fetch('https://gisapis.manpits.xyz/api/jenisjalan', {
+    fetch('https://gisapis.manpits.xyz/api/mjenisjalan', {
         headers: {
             Authorization: `Bearer ${token}`,
         }
