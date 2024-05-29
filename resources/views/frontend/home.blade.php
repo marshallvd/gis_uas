@@ -23,7 +23,7 @@
                     </div>
                     @auth
                     <div>
-                        <a href="{{ route('polyline.index') }}" class="btn btn-primary a">Tambah Data</a>
+                        <a href="{{ route('polyline.index') }}" class="btn btn-primary a">Lihat Jalanan</a>
                     @endauth
                     </div>
                     <br>

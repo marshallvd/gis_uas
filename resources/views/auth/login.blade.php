@@ -58,60 +58,60 @@
 
 @push('javascript')
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            alert('test')
-            let isValid = true;
-            const form = document.getElementById('loginForm')
+        // document.getElementById('loginForm').addEventListener('submit', function(event) {
+        //     event.preventDefault();
+        //     alert('test')
+        //     let isValid = true;
+        //     const form = document.getElementById('loginForm')
 
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value.trim();
+        //     const email = document.getElementById('email').value.trim();
+        //     const password = document.getElementById('password').value.trim();
             
-            const emailError = document.getElementById('emailError');
-            const passwordError = document.getElementById('passwordError');
+        //     const emailError = document.getElementById('emailError');
+        //     const passwordError = document.getElementById('passwordError');
 
-            emailError.style.display = 'none';
-            passwordError.style.display = 'none';
+        //     emailError.style.display = 'none';
+        //     passwordError.style.display = 'none';
 
-            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailPattern.test(email)) {
-                isValid = false;
-                emailError.textContent = 'Invalid email address';
-                emailError.style.display = 'block';
-            }
+        //     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        //     if (!emailPattern.test(email)) {
+        //         isValid = false;
+        //         emailError.textContent = 'Invalid email address';
+        //         emailError.style.display = 'block';
+        //     }
 
-            if (password.length < 6) {
-                isValid = false;
-                passwordError.textContent = 'Password must be at least 6 characters long';
-                passwordError.style.display = 'block';
-            }
+        //     if (password.length < 6) {
+        //         isValid = false;
+        //         passwordError.textContent = 'Password must be at least 6 characters long';
+        //         passwordError.style.display = 'block';
+        //     }
 
-            if (isValid) {
-                const formData = new FormData(form);
+        //     if (isValid) {
+        //         const formData = new FormData(form);
 
-                // Menggunakan fetch untuk mengirim data formulir
-                fetch("https://gisapis.manpits.xyz/api/login", {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.meta && data.meta.token) {
-                        alert(data.meta.message);
-                        // Set token ke localStorage
-                        localStorage.setItem("token", data.meta.token);
-                        console.log(localStorage.getItem('token'))
-                        // window.location.href = '/home.html';
-                    } else {
-                        alert('Failed to submit Login form. Please try again later.');
-                    }
-                })
-                .catch(error => {
-                    alert('Failed to submit Login form. Please try again later.');
-                    console.error('Error:', error);
-                });
-            }
-        });
+        //         // Menggunakan fetch untuk mengirim data formulir
+        //         fetch("https://gisapis.manpits.xyz/api/login", {
+        //             method: 'POST',
+        //             body: formData
+        //         })
+        //         .then(response => response.json())
+        //         .then(data => {
+        //             if (data.meta && data.meta.token) {
+        //                 alert(data.meta.message);
+        //                 // Set token ke localStorage
+        //                 localStorage.setItem("token", data.meta.token);
+        //                 console.log(localStorage.getItem('token'))
+        //                 // window.location.href = '/home.html';
+        //             } else {
+        //                 alert('Failed to submit Login form. Please try again later.');
+        //             }
+        //         })
+        //         .catch(error => {
+        //             alert('Failed to submit Login form. Please try again later.');
+        //             console.error('Error:', error);
+        //         });
+        //     }
+        // });
     </script>
 @endpush
 </body>

@@ -5,11 +5,15 @@
     <!-- Menambahkan stylesheet Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    
     <style>
         #map { 
             height: 1050px; 
         }
-        333333
+
         .custom-card {
             background-color: #1a1a1a; /* Warna latar belakang card */
             border-radius: 10px; /* Mengatur sudut lengkung card */
@@ -27,6 +31,7 @@
         .custom-card-body {
             padding: 20px; /* Ruang dalam body card */
         }
+
         .custom-label {
             font-weight: bold; /* Tulisan tebal pada label */
         }
@@ -152,132 +157,45 @@
                 </div>
                 <div class="custom-card-body">
                     <div id="map"></div>
+                    
+                </div>
+                <div class="container mx-auto mb-8 text-center">
+                    <a href="{{ route('polyline.index') }}" class="btn btn-secondary">Kembali</a>
+                    <br>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+
+
 <meta name="api-token" content="{{ session('token') }}">
 @endsection
 
 @push('javascript')
-    <script src="{{ asset('js/home.js') }}"></script>
+<script src="{{ asset('js/home.js') }}"></script>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""></script>
 
-    <script>
-    const map = L.map('map').setView([-8.373099488726732, 115.18725551951702], 10);
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+crossorigin=""></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-    const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 20,
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
 
-    var Esri_World = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-    });
-
-    var Esri_Map = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC',
-        maxZoom: 16
-    });
-
-    var Stadia_Dark = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.{ext}', {
-        minZoom: 0,
-        maxZoom: 20,
-        attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        ext: 'png'
-    });
-
-    var baseLayers = {
-        "OSM Tiles": tiles,
-        "ESRI World Imagery": Esri_World,
-        "ESRI Map": Esri_Map,
-        "Stadia Dark": Stadia_Dark
-    };
-
-    const layerControl = L.control.layers(baseLayers).addTo(map);
-
-    var markersLayer = new L.layerGroup().addTo(map);
-
-    var controlSearch = new L.Control.Search({
-        position: 'topleft',
-        layer: markersLayer,
-        zoom: 15,
-        markerLocation: true
-    });
-
-    map.addControl(controlSearch);
-
-    var iconMarker = L.icon({
-        iconUrl: "{{ asset('storage/marker/marker.png') }}",
-        iconSize: [50, 50],
-        shadowSize: [50, 50],
-    });
-
-    var marker = L.marker([-8.373099488726732, 115.18725551951702], {
-        icon: iconMarker,
-        draggable: true
-    })
-    .bindPopup('Ada apa disini?')
-    .addTo(map);
-
-    var popup = L.popup({ 
-        offset: [0, -20],
-        minWidth: 240,
-        maxWidth: 500
-    })
-        .setLatLng(marker.getLatLng())
-        .setContent('Ini adalah marker di Bali!');
-    
-    marker.bindPopup(popup);
-
-    function formatContent(lat, lng) {
-        return `
-            <div class="wrapper">
-                <div class="row">
-                    <div class="cell merged" style="text-align:center"><b>Koordinat</b></div>
-                </div>
-                <div class="row">
-                    <div class="col">Latitude</div>
-                    <div class="col">${lat}</div>
-                </div>
-                <div class="row">
-                    <div class="col">Longitude</div>
-                    <div class="col">${lng}</div>
-                </div>
-            </div>
-        `;
-    }
-
-    marker.on('click', function() {
-        popup.setLatLng(marker.getLatLng()),
-        popup.setContent(formatContent(marker.getLatLng().lat, marker.getLatLng().lng));
-    });
-
-    marker.on('drag', function(event) {
-        popup.setLatLng(marker.getLatLng()),
-        popup.setContent(formatContent(marker.getLatLng().lat, marker.getLatLng().lng));
-        marker.openPopup();
-    });
-
-    setTimeout(function () {
-        window.dispatchEvent(new Event("resize"));
-    }, 500);
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script>
+<script>
     document.addEventListener('DOMContentLoaded', () => {
         const token = document.querySelector('meta[name="api-token"]').getAttribute('content');
         console.log('Token:', token);
-        
+
         const provinceSelect = document.getElementById('province');
         const kabupatenSelect = document.getElementById('kabupaten');
         const kecamatanSelect = document.getElementById('kecamatan');
         const desaSelect = document.getElementById('desa');
+        const eksistingSelect = document.getElementById('eksisting');
+        const kondisiSelect = document.getElementById('kondisi');
+        const jenisJalanSelect = document.getElementById('jenis_jalan');
 
         fetch('https://gisapis.manpits.xyz/api/mregion', {
             headers: {
@@ -393,9 +311,145 @@
                 });
             }
         });
+
+        // Mendapatkan data eksisting dari API
+    fetch('https://gisapis.manpits.xyz/api/eksisting', {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        }
+    })
+    .then(response => response.json())
+    console.log(response.data) 
+    .then(data => {
+        console.log('Eksisting:', data.name); // Log data eksisting untuk debugging
+        
+        // Mengisi dropdown eksisting dengan data dari API
+        eksistingSelect.innerHTML = '<option value="">Pilih Material</option>';
+        data.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.nama;
+            eksistingSelect.appendChild(option);
+        });
+    })
+    .catch(error => {
+        console.error('Error fetching eksisting:', error); // Log error
+    });
+
+    // Mendapatkan data ruas jalan dari API
+    fetch('https://gisapis.manpits.xyz/api/ruasjalan', {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Ruas Jalan:', data.nama_ruas); // Log data ruas jalan untuk debugging
+        
+        // Mengisi dropdown kondisi dengan data dari API
+        data.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.nama_ruas;
+            ruasJalanSelect.appendChild(option);
+        });
+    })
+    .catch(error => {
+        console.error('Error fetching ruas jalan:', error); // Log error
+    });
+
+    // Mendapatkan data jenis jalan dari API
+    fetch('https://gisapis.manpits.xyz/api/jenisjalan', {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Jenis Jalan:', data); // Log data jenis jalan untuk debugging
+        
+        // Mengisi dropdown jenis jalan dengan data dari API
+        jenisJalanSelect.innerHTML = '<option value="">Pilih Jenis</option>';
+        data.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.nama;
+            jenisJalanSelect.appendChild(option);
+        });
+    })
+    .catch(error => {
+        console.error('Error fetching jenis jalan:', error); // Log error
+    });
+
     });
 
 
+    var map = L.map('map').setView([-8.409518, 115.188919], 13);
 
-    </script>
+    // Adding multiple basemaps
+    const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 20,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    var Esri_World = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    });
+
+    var Esri_Map = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC',
+        maxZoom: 16
+    });
+
+    var Stadia_Dark = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.{ext}', {
+        minZoom: 0,
+        maxZoom: 20,
+        attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        ext: 'png'
+    });
+
+    var baseLayers = {
+        "OSM Tiles": tiles,
+        "ESRI World Imagery": Esri_World,
+        "ESRI Map": Esri_Map,
+        "Stadia Dark": Stadia_Dark
+    };
+
+    // Adding layer control to map
+    L.control.layers(baseLayers).addTo(map);
+
+    var drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+
+    var drawControl = new L.Control.Draw({
+        edit: {
+            featureGroup: drawnItems
+        },
+        draw: {
+            polyline: true,
+            polygon: true,
+            circle: false,
+            rectangle: false,
+            marker: false,
+            circlemarker: false
+        }
+    });
+    map.addControl(drawControl);
+
+    map.on(L.Draw.Event.CREATED, function (event) {
+        var layer = event.layer;
+        drawnItems.addLayer(layer);
+        console.log('Layer created:', layer); // Log created layer for debugging
+
+        if (layer instanceof L.Polyline) {
+            console.log('Polyline coordinates:', layer.getLatLngs());
+        } else if (layer instanceof L.Polygon) {
+            console.log('Polygon coordinates:', layer.getLatLngs());
+        }
+    });
+
+    
+
+</script>
+
 @endpush

@@ -129,6 +129,10 @@
                 <div class="card-body p-4">
                     <div id="map"></div>
                 </div>
+                <div class="container mx-auto mb-8 text-center">
+                    <a href="{{ route('polyline.index') }}" class="btn btn-secondary">Kembali</a>
+                    <br>
+                </div>
             </div>
         </div>
     </div>
