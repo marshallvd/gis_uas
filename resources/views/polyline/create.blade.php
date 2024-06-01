@@ -49,9 +49,10 @@
                 </div>
                 
                 <div class="custom-card-body">
-                    <form action="{{ route('polyline.store') }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('polyline.store') }}" method="POST" enctype="multipart/form-data" id = "form" name="form">
                         @csrf
                         <div class="space-y-4">
+                            <!-- Dropdown Provinsi -->
                             <div class="form-control">
                                 <label class="label" for="province">
                                     <span class="label-text"><b>Pilih Provinsi</b></span>
@@ -60,7 +61,7 @@
                                     <option value="">Pilih Provinsi</option>
                                 </select>
                             </div>
-                            
+                            <!-- Dropdown Kabupaten -->
                             <div class="form-control">
                                 <label class="label" for="kabupaten">
                                     <span class="label-text"><b>Pilih Kabupaten</b></span>
@@ -69,7 +70,7 @@
                                     <option value="">Pilih Kabupaten</option>
                                 </select>
                             </div>
-                            
+                            <!-- Dropdown Kecamatan -->
                             <div class="form-control">
                                 <label class="label" for="kecamatan">
                                     <span class="label-text"><b>Pilih Kecamatan</b></span>
@@ -78,7 +79,7 @@
                                     <option value="">Pilih Kecamatan</option>
                                 </select>
                             </div>
-                            
+                            <!-- Dropdown Desa -->
                             <div class="form-control">
                                 <label class="label" for="desa">
                                     <span class="label-text"><b>Pilih Desa</b></span>
@@ -87,28 +88,28 @@
                                     <option value="">Pilih Desa</option>
                                 </select>
                             </div>
-                            
+                            <!-- Nama Ruas -->
                             <div class="form-control">
                                 <label class="label" for="nama_ruas">
                                     <span class="label-text"><b>Nama Ruas</b></span>
                                 </label>
                                 <input type="text" class="input input-bordered w-full" id="nama_ruas" name="nama_ruas" required />
                             </div>
-
+                            <!-- Lebar Ruas -->
                             <div class="form-control">
                                 <label class="label" for="lebar">
                                     <span class="label-text"><b>Lebar Ruas</b></span>
                                 </label>
                                 <input type="text" class="input input-bordered w-full" id="lebar" name="lebar" required />
                             </div>
-
+                            <!-- Kode Ruas -->
                             <div class="form-control">
                                 <label class="label" for="kode_ruas">
                                     <span class="label-text"><b>Kode Ruas</b></span>
                                 </label>
                                 <input type="text" class="input input-bordered w-full" id="kode_ruas" name="kode_ruas" required />
                             </div>
-
+                            <!-- Dropdown Eksisting -->
                             <div class="form-control">
                                 <label class="label" for="eksisting">
                                     <span class="label-text"><b>Eksisting</b></span>
@@ -117,7 +118,7 @@
                                     <option value="">Pilih Material</option>
                                 </select>
                             </div>
-
+                            <!-- Dropdown Kondisi -->
                             <div class="form-control">
                                 <label class="label" for="kondisi">
                                     <span class="label-text"><b>Kondisi</b></span>
@@ -126,7 +127,7 @@
                                     <option value="">Pilih Kondisi</option>
                                 </select>
                             </div>
-
+                            <!-- Dropdown Jenis Jalan -->
                             <div class="form-control">
                                 <label class="label" for="jenis_jalan">
                                     <span class="label-text"><b>Jenis Jalan</b></span>
@@ -135,14 +136,21 @@
                                     <option value="">Pilih Jenis</option>
                                 </select>
                             </div>
-
+                            <!-- Keterangan -->
                             <div class="form-control">
                                 <label class="label" for="keterangan">
                                     <span class="label-text"><b>Keterangan</b></span>
                                 </label>
                                 <input type="text" class="input input-bordered w-full" id="keterangan" name="keterangan" required />
                             </div>
-                            
+                            <!-- Latlng (Koordinat) -->
+                            <div class="form-control">
+                                <label class="label" for="latlng">
+                                    <span class="label-text"><b>Latlng</b></span>
+                                </label>
+                                <input type="text" class="input input-bordered w-full" id="latlng" name="latlng" required />
+                            </div>
+                            <!-- Tombol Submit -->
                             <button type="submit" class="btn btn-primary w-full">Tambah Jalan</button>
                         </div>
                     </form>
@@ -181,6 +189,8 @@ integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
 crossorigin=""></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-geometryutil@0.0.2/dist/leaflet.geometryutil.min.js"></script>
+
 
 
 <script>
@@ -318,7 +328,7 @@ crossorigin=""></script>
         }
     })
     .then(response => response.json())
-    console.log(response.data)
+    // console.log(response.data)
     .then(data => {
         
         console.log('Eksisting:', data.eksisting); // Log data eksisting untuk debugging
@@ -367,14 +377,14 @@ crossorigin=""></script>
     })
     .then(response => response.json())
     .then(data => {
-        console.log('Jenis Jalan:', data); // Log data jenis jalan untuk debugging
+        console.log('Jenis Jalan:', data.jenisjalan); // Log data jenis jalan untuk debugging
         
         // Mengisi dropdown jenis jalan dengan data dari API
         jenisJalanSelect.innerHTML = '<option value="">Pilih Jenis</option>';
-        data.forEach(item => {
+        data.eksisting.forEach(eksisting => {
             const option = document.createElement('option');
-            option.value = item.id;
-            option.textContent = item.nama;
+            option.value = eksisting.id;
+            option.textContent = eksisting.jenisjalan;
             jenisJalanSelect.appendChild(option);
         });
     })
@@ -382,7 +392,69 @@ crossorigin=""></script>
         console.error('Error fetching jenis jalan:', error); // Log error
     });
 
+
+    fetch('https://gisapis.manpits.xyz/api/mkondisi', {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Kondisi:', data.jenisjalan); // Log data jenis jalan untuk debugging
+        
+        // Mengisi dropdown jenis jalan dengan data dari API
+        kondisiSelect.innerHTML = '<option value="">Kondisi</option>';
+        data.eksisting.forEach(eksisting => {
+            const option = document.createElement('option');
+            option.value = eksisting.id;
+            option.textContent = eksisting.kondisi;
+            kondisiSelect.appendChild(option);
+        });
+    })
+    .catch(error => {
+        console.error('Error fetching jenis jalan:', error); // Log error
     });
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault(); // Mencegah formulir dikirimkan secara langsung
+
+        // Kumpulkan data dari formulir
+        const formData = new FormData(form);
+        const payload = {};
+
+        // Konversi FormData ke objek JSON
+        formData.forEach((value, key) => {
+            payload[key] = value;
+        });
+
+        // Kirim permintaan HTTP POST ke API
+        fetch('{{ route("polyline.store") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Gagal menyimpan data.');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Tangani respons dari API
+            console.log('Data berhasil disimpan:', data);
+            alert('Data berhasil disimpan.');
+            // Kemungkinan lainnya: perbarui antarmuka pengguna, tampilkan pesan sukses, dll.
+        })
+        .catch(error => {
+            console.error('Terjadi kesalahan:', error);
+            alert('Terjadi kesalahan. Silakan coba lagi.');
+            // Kemungkinan lainnya: tangani kesalahan dengan cara lain, tampilkan pesan kesalahan, dll.
+        });
+    });
+
 
 
     var map = L.map('map').setView([-8.409518, 115.188919], 13);
@@ -437,20 +509,63 @@ crossorigin=""></script>
     });
     map.addControl(drawControl);
 
-    map.on(L.Draw.Event.CREATED, function (event) {
+    map.on('draw:created', function (event) {
         var layer = event.layer;
         drawnItems.addLayer(layer);
-        console.log('Layer created:', layer); // Log created layer for debugging
 
+        var latlngs;
         if (layer instanceof L.Polyline) {
-            console.log('Polyline coordinates:', layer.getLatLngs());
+            latlngs = layer.getLatLngs();
         } else if (layer instanceof L.Polygon) {
-            console.log('Polygon coordinates:', layer.getLatLngs());
+            latlngs = layer.getLatLngs()[0]; // outer ring
         }
+
+        var latlngString = latlngs.map(function(latlng) {
+            return `${latlng.lat}, ${latlng.lng}`;
+        }).join('\n');
+
+        document.getElementById('latlng').value = latlngString;
+
+        // Calculate the length of the polyline
+        var length = L.GeometryUtil.length(layer);
+        console.log('Length:', length);
+
+        // Display the length in a suitable HTML element (e.g., an input field or a div)
+        alert(`Panjang Polyline: ${length.toFixed(2)} meters`);
     });
+
+    map.on('draw:edited', function (event) {
+        var layers = event.layers;
+        var latlngs = [];
+
+        layers.eachLayer(function (layer) {
+            if (layer instanceof L.Polyline) {
+                latlngs = latlngs.concat(layer.getLatLngs());
+            } else if (layer instanceof L.Polygon) {
+                latlngs = latlngs.concat(layer.getLatLngs()[0]); // outer ring
+            }
+        });
+
+        var latlngString = latlngs.map(function(latlng) {
+            return `${latlng.lat}, ${latlng.lng}`;
+        }).join('\n');
+
+        document.getElementById('latlng').value = latlngString;
+
+        // Calculate the length of the polyline
+        var length = L.GeometryUtil.length(layers);
+        console.log('Length:', length);
+
+        // Display the length in a suitable HTML element (e.g., an input field or a div)
+        alert(`Panjang Polyline: ${length.toFixed(2)} meters`);
+    });
+
+
 
     
 
+    
+});
 </script>
 
 @endpush

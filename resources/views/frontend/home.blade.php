@@ -22,7 +22,7 @@
                         <h2 class="mb-5 text-3xl font-bold">Perhatikan Jalanmu</h2>
                     </div>
                     @auth
-                    <div>
+                    <div class="flex justify-end">
                         <a href="{{ route('polyline.index') }}" class="btn btn-primary a">Lihat Jalanan</a>
                     @endauth
                     </div>
@@ -185,4 +185,3 @@
 
     
 @endpush
-

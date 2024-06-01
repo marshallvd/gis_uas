@@ -36,5 +36,7 @@ class ApiController extends Controller
         $response = Http::get("https://gisapis.manpits.xyz/api/desa/{$id}");
         return $response->json();
     }
+
+
 }
 
