@@ -29,26 +29,28 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($polylines as $polyline)
-                <tr>
-                    <td>{{ $polyline->nama_ruas }}</td>
-                    <td>{{ $polyline->paths }}</td>
-                    <td>{{ $polyline->panjang }}</td>
-                    <td>{{ $polyline->lebar }}</td>
-                    <td>{{ $polyline->eksisting->eksisting }}</td>
-                    <td>{{ $polyline->kondisi->kondisi }}</td>
-                    <td>{{ $polyline->jenisjalan->jenisjalan }}</td>
-                    <td>{{ $polyline->keterangan }}</td>
-                    <td class="flex space-x-2">
-                        <a href="{{ route('polyline.edit', $polyline->id) }}" class="btn btn-primary">Edit</a>
-                        <form action="{{ route('polyline.destroy', $polyline->id) }}" method="POST" class="inline">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-                @endforeach
+                @if(isset($polylines['ruasjalan']) && is_array($polylines['ruasjalan']))
+                    @foreach ($polylines['ruasjalan'] as $polyline)
+                    <tr>
+                        <td>{{ $polyline['nama_ruas'] }}</td>
+                        <td>{{ $polyline['paths'] }}</td>
+                        <td>{{ $polyline['panjang'] }}</td>
+                        <td>{{ $polyline['lebar'] }}</td>
+                        <td>{{ $polyline['eksisting_id'] }}</td>
+                        <td>{{ $polyline['kondisi_id'] }}</td>
+                        <td>{{ $polyline['jenisjalan_id'] }}</td>
+                        <td>{{ $polyline['keterangan'] }}</td>
+                        <td class="flex space-x-2">
+                            <a href="{{ route('polyline.edit', $polyline['id']) }}" class="btn btn-primary">Edit</a>
+                            <form action="{{ route('polyline.destroy', $polyline['id']) }}" method="POST" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    @endforeach
+                @endif
             </tbody>
         </table>
     </div>
@@ -93,14 +95,14 @@
                 let data_desa = data_region.desa.find(k => k.id == ruas.desa_id);
                 return `
                     <tr>
-                        <td>${ruas.nama_ruas}</td>
-                        <td>${ruas.paths}</td>
-                        <td>${ruas.panjang}</td>
-                        <td>${ruas.lebar}</td>
-                        <td>${ruas.eksisting.eksisting}</td>
-                        <td>${ruas.kondisi.kondisi}</td>
-                        <td>${ruas.jenisjalan.jenisjalan}</td>
-                        <td>${ruas.keterangan}</td>
+                        <td>{{ $polyline['nama_ruas'] }}</td>
+                        <td>{{ $polyline['paths'] }}</td>
+                        <td>{{ $polyline['panjang'] }}</td>
+                        <td>{{ $polyline['lebar'] }}</td>
+                        <td>{{ $polyline['eksisting']['eksisting'] }}</td>
+                        <td>{{ $polyline['kondisi']['kondisi'] }}</td>
+                        <td>{{ $polyline['jenisjalan']['jenisjalan'] }}</td>
+                        <td>{{ $polyline['keterangan'] }}</td>
                         <td class="flex space-x-2">
                             <a href="/polyline/edit/${ruas.id}" class="btn btn-primary">Edit</a>
                             <form action="/polyline/destroy/${ruas.id}" method="POST" class="inline">

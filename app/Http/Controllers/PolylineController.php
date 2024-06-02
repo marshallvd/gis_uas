@@ -10,7 +10,7 @@ class PolylineController extends Controller
     public function index()
     {
         $token = session('token');
-
+    
         $client = new \GuzzleHttp\Client();
         $response = $client->request('GET', 'https://gisapis.manpits.xyz/api/ruasjalan', [
             'headers' => [
@@ -18,9 +18,10 @@ class PolylineController extends Controller
                 'Accept' => 'application/json',
             ],
         ]);
-
+    
         if ($response->getStatusCode() == 200) {
             $polylines = json_decode($response->getBody(), true);
+            // dd($polylines); // Tambahkan dd() untuk melihat struktur data
             return view('polyline.index', compact('polylines'));
         } else {
             // Handle error
