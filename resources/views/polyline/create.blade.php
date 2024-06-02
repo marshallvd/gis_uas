@@ -11,7 +11,8 @@
     
     <style>
         #map { 
-            height: 1050px; 
+            height: 600px; 
+            margin-top: 20px; 
         }
 
         .custom-card {
@@ -26,6 +27,9 @@
             border-bottom: 2px solid #333333; /* Garis bawah header card */
             border-radius: 10px 10px 0px 0px; /* Sudut lengkung hanya pada sudut atas */
             background-color: #1a1a1a; /* Warna header card */
+            display: flex; /* Flexbox untuk align items */
+            justify-content: space-between; /* Menyebar elemen secara horizontal */
+            align-items: center; /* Align items secara vertikal */
         }
 
         .custom-card-body {
@@ -35,148 +39,158 @@
         .custom-label {
             font-weight: bold; /* Tulisan tebal pada label */
         }
-        
+
+        .form-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .form-section > div {
+            flex: 1;
+            margin: 0 10px;
+        }
     </style>
 @endsection
 
 @section('contents')
 <div class="container mx-auto my-8">
-    <div class="flex flex-wrap">
-        <div class="w-full md:w-1/3 p-4">
-            <div class="custom-card">
-                <div class="custom-card-header">
-                    <h1 class="text-xl font-bold">Tambah Data Jalan</h1>
-                </div>
-                
-                <div class="custom-card-body">
-                    <form action="{{ route('polyline.store') }}" method="POST" enctype="multipart/form-data" id = "form" name="form">
-                        @csrf
-                        <div class="space-y-4">
-                            <!-- Dropdown Provinsi -->
-                            <div class="form-control">
-                                <label class="label" for="province">
-                                    <span class="label-text"><b>Pilih Provinsi</b></span>
-                                </label>
-                                <select class="select select-bordered w-full" id="province" name="province" required>
-                                    <option value="">Pilih Provinsi</option>
-                                </select>
-                            </div>
-                            <!-- Dropdown Kabupaten -->
-                            <div class="form-control">
-                                <label class="label" for="kabupaten">
-                                    <span class="label-text"><b>Pilih Kabupaten</b></span>
-                                </label>
-                                <select class="select select-bordered w-full" id="kabupaten" name="kabupaten" required>
-                                    <option value="">Pilih Kabupaten</option>
-                                </select>
-                            </div>
-                            <!-- Dropdown Kecamatan -->
-                            <div class="form-control">
-                                <label class="label" for="kecamatan">
-                                    <span class="label-text"><b>Pilih Kecamatan</b></span>
-                                </label>
-                                <select class="select select-bordered w-full" id="kecamatan" name="kecamatan" required>
-                                    <option value="">Pilih Kecamatan</option>
-                                </select>
-                            </div>
-                            <!-- Dropdown Desa -->
-                            <div class="form-control">
-                                <label class="label" for="desa">
-                                    <span class="label-text"><b>Pilih Desa</b></span>
-                                </label>
-                                <select class="select select-bordered w-full" id="desa" name="desa" required>
-                                    <option value="">Pilih Desa</option>
-                                </select>
-                            </div>
-                            <!-- Nama Ruas -->
-                            <div class="form-control">
-                                <label class="label" for="nama_ruas">
-                                    <span class="label-text"><b>Nama Ruas</b></span>
-                                </label>
-                                <input type="text" class="input input-bordered w-full" id="nama_ruas" name="nama_ruas" required />
-                            </div>
-                            <!-- Lebar Ruas -->
-                            <div class="form-control">
-                                <label class="label" for="lebar">
-                                    <span class="label-text"><b>Lebar Ruas</b></span>
-                                </label>
-                                <input type="text" class="input input-bordered w-full" id="lebar" name="lebar" required />
-                            </div>
-                            <!-- Kode Ruas -->
-                            <div class="form-control">
-                                <label class="label" for="kode_ruas">
-                                    <span class="label-text"><b>Kode Ruas</b></span>
-                                </label>
-                                <input type="text" class="input input-bordered w-full" id="kode_ruas" name="kode_ruas" required />
-                            </div>
-                            <!-- Dropdown Eksisting -->
-                            <div class="form-control">
-                                <label class="label" for="eksisting">
-                                    <span class="label-text"><b>Eksisting</b></span>
-                                </label>
-                                <select class="select select-bordered w-full" id="eksisting" name="eksisting" required>
-                                    <option value="">Pilih Material</option>
-                                </select>
-                            </div>
-                            <!-- Dropdown Kondisi -->
-                            <div class="form-control">
-                                <label class="label" for="kondisi">
-                                    <span class="label-text"><b>Kondisi</b></span>
-                                </label>
-                                <select class="select select-bordered w-full" id="kondisi" name="kondisi" required>
-                                    <option value="">Pilih Kondisi</option>
-                                </select>
-                            </div>
-                            <!-- Dropdown Jenis Jalan -->
-                            <div class="form-control">
-                                <label class="label" for="jenis_jalan">
-                                    <span class="label-text"><b>Jenis Jalan</b></span>
-                                </label>
-                                <select class="select select-bordered w-full" id="jenis_jalan" name="jenis_jalan" required>
-                                    <option value="">Pilih Jenis</option>
-                                </select>
-                            </div>
-                            <!-- Keterangan -->
-                            <div class="form-control">
-                                <label class="label" for="keterangan">
-                                    <span class="label-text"><b>Keterangan</b></span>
-                                </label>
-                                <input type="text" class="input input-bordered w-full" id="keterangan" name="keterangan" required />
-                            </div>
-                            <!-- Latlng (Koordinat) -->
-                            <div class="form-control">
-                                <label class="label" for="latlng">
-                                    <span class="label-text"><b>Latlng</b></span>
-                                </label>
-                                <input type="text" class="input input-bordered w-full" id="latlng" name="latlng" required />
-                            </div>
-                            <!-- Tombol Submit -->
-                            <button type="submit" class="btn btn-primary w-full">Tambah Jalan</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+    <div class="custom-card">
+        <div class="custom-card-header">
+            <h1 class="text-xl font-bold">Tambah Data Jalan</h1>
+            <a href="{{ route('polyline.index') }}" class="btn btn-outline btn-secondary">Kembali</a>
         </div>
+        <div class="custom-card-body">
+            <div id="map"></div>
+        </div>
+    </div>
 
-        <div class="w-full md:w-2/3 p-4">
-            <div class="custom-card">
-                <div class="custom-card-header">
-                    <h1 class="text-xl font-bold">Peta</h1>
+    <div class="custom-card">
+        <div class="custom-card-body">
+            <form action="{{ route('polyline.store') }}" method="POST" enctype="multipart/form-data" id="form" name="form">
+                @csrf
+                <div class="form-section">
+                    <!-- Bagian Pertama -->
+                    <div>
+                        <!-- Nama Ruas -->
+                        <div class="form-control">
+                            <label class="label" for="nama_ruas">
+                                <span class="label-text"><b>Nama Ruas</b></span>
+                            </label>
+                            <input type="text" class="input input-bordered w-full" id="nama_ruas" name="nama_ruas" required />
+                        </div>
+                        <!-- Lebar Ruas -->
+                        <div class="form-control">
+                            <label class="label" for="lebar">
+                                <span class="label-text"><b>Lebar Ruas</b></span>
+                            </label>
+                            <input type="text" class="input input-bordered w-full" id="lebar" name="lebar" required />
+                        </div>
+                        <!-- Kode Ruas -->
+                        <div class="form-control">
+                            <label class="label" for="kode_ruas">
+                                <span class="label-text"><b>Kode Ruas</b></span>
+                            </label>
+                            <input type="text" class="input input-bordered w-full" id="kode_ruas" name="kode_ruas" required />
+                        </div>
+                        <!-- Keterangan -->
+                        <div class="form-control">
+                            <label class="label" for="keterangan">
+                                <span class="label-text"><b>Keterangan</b></span>
+                            </label>
+                            <input type="text" class="input input-bordered w-full" id="keterangan" name="keterangan" required />
+                        </div>
+                    </div>
+
+                    <!-- Bagian Kedua -->
+                    <div>
+                        <!-- Dropdown Provinsi -->
+                        <div class="form-control">
+                            <label class="label" for="province">
+                                <span class="label-text"><b>Pilih Provinsi</b></span>
+                            </label>
+                            <select class="select select-bordered w-full" id="province" name="province" required>
+                                <option value="">Pilih Provinsi</option>
+                            </select>
+                        </div>
+                        <!-- Dropdown Kabupaten -->
+                        <div class="form-control">
+                            <label class="label" for="kabupaten">
+                                <span class="label-text"><b>Pilih Kabupaten</b></span>
+                            </label>
+                            <select class="select select-bordered w-full" id="kabupaten" name="kabupaten" required>
+                                <option value="">Pilih Kabupaten</option>
+                            </select>
+                        </div>
+                        <!-- Dropdown Kecamatan -->
+                        <div class="form-control">
+                            <label class="label" for="kecamatan">
+                                <span class="label-text"><b>Pilih Kecamatan</b></span>
+                            </label>
+                            <select class="select select-bordered w-full" id="kecamatan" name="kecamatan" required>
+                                <option value="">Pilih Kecamatan</option>
+                            </select>
+                        </div>
+                        <!-- Dropdown Desa -->
+                        <div class="form-control">
+                            <label class="label" for="desa">
+                                <span class="label-text"><b>Pilih Desa</b></span>
+                            </label>
+                            <select class="select select-bordered w-full" id="desa" name="desa" required>
+                                <option value="">Pilih Desa</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Bagian Ketiga -->
+                    <div>
+                        <!-- Dropdown Eksisting -->
+                        <div class="form-control">
+                            <label class="label" for="eksisting">
+                                <span class="label-text"><b>Eksisting</b></span>
+                            </label>
+                            <select class="select select-bordered w-full" id="eksisting" name="eksisting" required>
+                                <option value="">Pilih Material</option>
+                            </select>
+                        </div>
+                        <!-- Dropdown Kondisi -->
+                        <div class="form-control">
+                            <label class="label" for="kondisi">
+                                <span class="label-text"><b>Kondisi</b></span>
+                            </label>
+                            <select class="select select-bordered w-full" id="kondisi" name="kondisi" required>
+                                <option value="">Pilih Kondisi</option>
+                            </select>
+                        </div>
+                        <!-- Dropdown Jenis Jalan -->
+                        <div class="form-control">
+                            <label class="label" for="jenis_jalan">
+                                <span class="label-text"><b>Jenis Jalan</b></span>
+                            </label>
+                            <select class="select select-bordered w-full" id="jenis_jalan" name="jenis_jalan" required>
+                                <option value="">Pilih Jenis</option>
+                            </select>
+                        </div>
+
+                        <!-- Latlng (Koordinat) -->
+                        <div class="form-control">
+                            <label class="label" for="latlng">
+                                <span class="label-text"><b>Latlng</b></span>
+                            </label>
+                            <input type="text" class="input input-bordered w-full" id="latlng" name="latlng" required />
+                        </div>
+                    </div>
                 </div>
-                <div class="custom-card-body">
-                    <div id="map"></div>
-                    
+
+                <!-- Tombol Submit dan Reset -->
+                <div class="flex justify-between">
+                    <button type="submit" class="btn btn-primary w-1/2 mt-4">Tambah Jalan</button>
+                    <button type="reset" class="btn btn-secondary w-1/2 mt-4 ml-2">Reset</button>
                 </div>
-                <div class="container mx-auto mb-8 text-center">
-                    <a href="{{ route('polyline.index') }}" class="btn btn-secondary">Kembali</a>
-                    <br>
-                </div>
-            </div>
+            </form>
         </div>
     </div>
 </div>
-
-
 
 <meta name="api-token" content="{{ session('token') }}">
 @endsection
@@ -409,6 +423,7 @@ crossorigin=""></script>
 
         // Mengumpulkan data dari formulir
         const formData = {
+            // paths: polyline.encode(drawnItems.getLayers()[0].getLatLngs()),
             paths: document.getElementById('latlng').value.replace(/\n/g, ' '),
             desa_id: document.getElementById('desa').value,
             kode_ruas: document.getElementById('kode_ruas').value,
@@ -565,7 +580,12 @@ crossorigin=""></script>
         alert(`Panjang Polyline: ${length.toFixed(2)} meters`);
     });
 
-
+    document.getElementById('form').addEventListener('reset', function() {
+        // Menghapus semua layer dari drawnItems ketika tombol reset ditekan
+        drawnItems.clearLayers();
+        // Reset koordinat
+        document.getElementById('latlng').value = '';
+    });
 
     
 

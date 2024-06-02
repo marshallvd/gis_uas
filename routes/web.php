@@ -30,7 +30,8 @@ Route::get('/polyline', [PolylineController::class, 'index'])->name('polyline.in
 Route::get('/polyline/create', [PolylineController::class, 'create'])->name('polyline.create');
 Route::post('/polyline/store', [PolylineController::class, 'store'])->name('polyline.store');
 Route::get('/polyline/edit', [PolylineController::class, 'edit'])->name('polyline.edit');
-Route::delete('/polyline/{id}', 'PolylineController@destroy')->name('polyline.destroy');
+Route::delete('/polyline/{id}', [PolylineController::class, 'destroy'])->name('polyline.destroy');
+
 
 
 

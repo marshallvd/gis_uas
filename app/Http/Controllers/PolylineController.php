@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Polyline;
+use GuzzleHttp\Client;
 
 class PolylineController extends Controller
 {
@@ -62,8 +63,7 @@ class PolylineController extends Controller
     public function destroy($id)
     {
         $token = session('token');
-
-        $client = new \GuzzleHttp\Client();
+        $client = new Client();
         $response = $client->request('DELETE', 'https://gisapis.manpits.xyz/api/ruasjalan/' . $id, [
             'headers' => [
                 'Authorization' => 'Bearer ' . $token,
