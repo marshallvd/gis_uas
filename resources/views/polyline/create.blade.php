@@ -194,6 +194,16 @@ crossorigin=""></script>
 
 
 <script>
+    // Fungsi untuk menghitung panjang garis polyline
+    function calculateLength(latlngs) {
+        let length = 0;
+        for (let i = 0; i < latlngs.length - 1; i++) {
+            length += latlngs[i].distanceTo(latlngs[i + 1]);
+        }
+        return length;
+    }
+
+
     document.addEventListener('DOMContentLoaded', () => {
         const token = document.querySelector('meta[name="api-token"]').getAttribute('content');
         console.log('Token:', token);
@@ -347,28 +357,7 @@ crossorigin=""></script>
         console.error('Error fetching eksisting:', error); // Log error
     });
 
-    // Mendapatkan data ruas jalan dari API
-    fetch('https://gisapis.manpits.xyz/api/ruasjalan', {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Ruas Jalan:', data.nama_ruas); // Log data ruas jalan untuk debugging
-        
-        // Mengisi dropdown kondisi dengan data dari API
-        data.forEach(item => {
-            const option = document.createElement('option');
-            option.value = item.id;
-            option.textContent = item.nama_ruas;
-            ruasJalanSelect.appendChild(option);
-        });
-    })
-    .catch(error => {
-        console.error('Error fetching ruas jalan:', error); // Log error
-    });
-
+    
     // Mendapatkan data jenis jalan dari API
     fetch('https://gisapis.manpits.xyz/api/mjenisjalan', {
         headers: {
@@ -400,7 +389,7 @@ crossorigin=""></script>
     })
     .then(response => response.json())
     .then(data => {
-        console.log('Kondisi:', data.jenisjalan); // Log data jenis jalan untuk debugging
+        console.log('Kondisi:', data.kondisi); // Log data jenis jalan untuk debugging
         
         // Mengisi dropdown jenis jalan dengan data dari API
         kondisiSelect.innerHTML = '<option value="">Kondisi</option>';
@@ -415,43 +404,59 @@ crossorigin=""></script>
         console.error('Error fetching jenis jalan:', error); // Log error
     });
 
-    form.addEventListener('submit', (event) => {
+    document.getElementById('form').addEventListener('submit', function(event) {
         event.preventDefault(); // Mencegah formulir dikirimkan secara langsung
 
-        // Kumpulkan data dari formulir
-        const formData = new FormData(form);
-        const payload = {};
+        // Mengumpulkan data dari formulir
+        const formData = {
+            paths: document.getElementById('latlng').value.replace(/\n/g, ' '),
+            desa_id: document.getElementById('desa').value,
+            kode_ruas: document.getElementById('kode_ruas').value,
+            nama_ruas: document.getElementById('nama_ruas').value,
+            panjang: calculateLength(drawnItems.getLayers()[0].getLatLngs()), // Menggunakan fungsi calculateLength untuk menghitung panjang
+            lebar: document.getElementById('lebar').value,
+            eksisting_id: document.getElementById('eksisting').value,
+            kondisi_id: document.getElementById('kondisi').value,
+            jenisjalan_id: document.getElementById('jenis_jalan').value,
+            keterangan: document.getElementById('keterangan').value
+        };
 
-        // Konversi FormData ke objek JSON
-        formData.forEach((value, key) => {
-            payload[key] = value;
-        });
+        console.log('Form data to be sent:', formData); // Tambahkan log ini
 
-        // Kirim permintaan HTTP POST ke API
-        fetch('{{ route("polyline.store") }}', {
+        const token = document.querySelector('meta[name="api-token"]').getAttribute('content');
+
+        // Membuat permintaan HTTP POST ke API
+        fetch('https://gisapis.manpits.xyz/api/ruasjalan', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(formData)
         })
         .then(response => {
+            console.log('Raw response:', response); // Log raw response
             if (!response.ok) {
-                throw new Error('Gagal menyimpan data.');
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-            return response.json();
+            return response.json().then(data => ({ status: response.status, body: data }));
         })
-        .then(data => {
-            // Tangani respons dari API
-            console.log('Data berhasil disimpan:', data);
+        .then(({ status, body }) => {
+            if (status !== 200) {
+                console.error('Error data:', body); // Log error data
+                throw new Error(body.message || 'Gagal menyimpan data.');
+            }
+            console.log('Data berhasil disimpan:', body);
             alert('Data berhasil disimpan.');
-            // Kemungkinan lainnya: perbarui antarmuka pengguna, tampilkan pesan sukses, dll.
         })
         .catch(error => {
             console.error('Terjadi kesalahan:', error);
-            alert('Terjadi kesalahan. Silakan coba lagi.');
-            // Kemungkinan lainnya: tangani kesalahan dengan cara lain, tampilkan pesan kesalahan, dll.
+            if (error.message.includes('Unexpected token')) {
+                console.error('Respons API tidak valid:', error.message);
+            } else if (error.message.includes('HTTP error')) {
+                console.error('Server mengembalikan status error:', error.message);
+            }
+            alert(`Terjadi kesalahan: ${error.message}`);
         });
     });
 
@@ -527,7 +532,7 @@ crossorigin=""></script>
         document.getElementById('latlng').value = latlngString;
 
         // Calculate the length of the polyline
-        var length = L.GeometryUtil.length(layer);
+        var length = calculateLength(latlngs);
         console.log('Length:', length);
 
         // Display the length in a suitable HTML element (e.g., an input field or a div)
@@ -553,7 +558,7 @@ crossorigin=""></script>
         document.getElementById('latlng').value = latlngString;
 
         // Calculate the length of the polyline
-        var length = L.GeometryUtil.length(layers);
+        var length = calculateLength(latlngs);
         console.log('Length:', length);
 
         // Display the length in a suitable HTML element (e.g., an input field or a div)

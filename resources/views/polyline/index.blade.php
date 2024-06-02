@@ -17,49 +17,38 @@
         <table class="table w-full">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Coordinates</th>
+                    <th>Nama Ruas</th>
+                    <th>Koordinat</th>
+                    <th>Panjang</th>
+                    <th>Lebar</th>
+                    <th>Eksisting</th>
+                    <th>Kondisi</th>
+                    <th>Jenis Jalan</th>
+                    <th>Keterangan</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Dummy Data -->
+                @foreach ($polylines as $polyline)
                 <tr>
-                    <td>Route 1</td>
-                    <td>[35.6895, 139.6917], [34.0522, -118.2437], [40.7128, -74.0060]</td>
+                    <td>{{ $polyline->nama_ruas }}</td>
+                    <td>{{ $polyline->paths }}</td>
+                    <td>{{ $polyline->panjang }}</td>
+                    <td>{{ $polyline->lebar }}</td>
+                    <td>{{ $polyline->eksisting->eksisting }}</td>
+                    <td>{{ $polyline->kondisi->kondisi }}</td>
+                    <td>{{ $polyline->jenisjalan->jenisjalan }}</td>
+                    <td>{{ $polyline->keterangan }}</td>
                     <td class="flex space-x-2">
-                        <a href="{{ route('polyline.edit') }}" class="btn btn-primary">Edit</a>
-                        <form action="#" method="POST" class="inline">
+                        <a href="{{ route('polyline.edit', $polyline->id) }}" class="btn btn-primary">Edit</a>
+                        <form action="{{ route('polyline.destroy', $polyline->id) }}" method="POST" class="inline">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn btn-danger">Delete</button>
                         </form>
                     </td>
                 </tr>
-                <tr>
-                    <td>Route 2</td>
-                    <td>[48.8566, 2.3522], [51.5074, -0.1278], [52.5200, 13.4050]</td>
-                    <td class="flex space-x-2">
-                        <a href="{{ route('polyline.create') }}" class="btn btn-primary">Edit</a>
-                        <form action="#" method="POST" class="inline">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Route 3</td>
-                    <td>[37.7749, -122.4194], [47.6062, -122.3321], [45.5152, -122.6784]</td>
-                    <td class="flex space-x-2">
-                        <a href="#" class="btn btn-primary">Edit</a>
-                        <form action="#" method="POST" class="inline">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger">Delete</button>
-                        </form>
-                    </td>
-                </tr>
+                @endforeach
             </tbody>
         </table>
     </div>
@@ -67,30 +56,104 @@
 @endsection
 
 @push('javascript')
-    <script>
-        document.querySelectorAll('.btn-danger').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                var form = this.closest('form');
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "This action cannot be undone!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, delete it!'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                        Swal.fire(
-                            'Deleted!',
-                            'Your data has been deleted.',
-                            'success'
-                        );
+<script>
+    document.addEventListener('DOMContentLoaded', async function () {
+        const token = localStorage.getItem("token");
+        const api_main_url = localStorage.getItem("api_main_url");
+
+        if (!token || !api_main_url) {
+            console.error('Token or API URL is missing');
+            return;
+        }
+
+        const headers = {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+        };
+
+        async function fetchData(url) {
+            const response = await fetch(url, { headers });
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return response.json();
+        }
+
+        try {
+            console.log('Fetching data from API...');
+            const data_region = await fetchData(api_main_url + "api/mregion");
+            const data_ruas = await fetchData(api_main_url + "api/ruasjalan");
+
+            console.log('Data Region:', data_region);
+            console.log('Data Ruas:', data_ruas);
+
+            const tableBody = document.querySelector("table tbody");
+
+            const formatContentRuas = function (ruas, data_region) {
+                let data_desa = data_region.desa.find(k => k.id == ruas.desa_id);
+                return `
+                    <tr>
+                        <td>${ruas.nama_ruas}</td>
+                        <td>${ruas.paths}</td>
+                        <td>${ruas.panjang}</td>
+                        <td>${ruas.lebar}</td>
+                        <td>${ruas.eksisting.eksisting}</td>
+                        <td>${ruas.kondisi.kondisi}</td>
+                        <td>${ruas.jenisjalan.jenisjalan}</td>
+                        <td>${ruas.keterangan}</td>
+                        <td class="flex space-x-2">
+                            <a href="/polyline/edit/${ruas.id}" class="btn btn-primary">Edit</a>
+                            <form action="/polyline/destroy/${ruas.id}" method="POST" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                `;
+            };
+
+            if (Array.isArray(data_ruas.ruasjalan)) {
+                data_ruas.ruasjalan.forEach(ruas => {
+                    if (typeof ruas === 'object' && ruas !== null && 'nama_ruas' in ruas) {
+                        console.log('Processing ruas:', ruas);
+                        tableBody.innerHTML += formatContentRuas(ruas, data_region);
+                    } else {
+                        console.error('Invalid ruas data:', ruas);
                     }
                 });
+            } else {
+                console.error('Invalid data_ruas.ruasjalan:', data_ruas.ruasjalan);
+            }
+
+            document.querySelectorAll('.btn-danger').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var form = this.closest('form');
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "This action cannot be undone!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes, delete it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                            Swal.fire(
+                                'Deleted!',
+                                'Your data has been deleted.',
+                                'success'
+                            );
+                        }
+                    });
+                });
             });
-        });
-    </script>
+
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    });
+</script>
 @endpush

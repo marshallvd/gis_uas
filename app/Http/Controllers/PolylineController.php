@@ -9,8 +9,23 @@ class PolylineController extends Controller
 {
     public function index()
     {
-        $polylines = Polyline::all();
-        return view('polyline.index', compact('polylines'));
+        $token = session('token');
+
+        $client = new \GuzzleHttp\Client();
+        $response = $client->request('GET', 'https://gisapis.manpits.xyz/api/ruasjalan', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token,
+                'Accept' => 'application/json',
+            ],
+        ]);
+
+        if ($response->getStatusCode() == 200) {
+            $polylines = json_decode($response->getBody(), true);
+            return view('polyline.index', compact('polylines'));
+        } else {
+            // Handle error
+            return redirect()->back()->with('error', 'Failed to fetch data from API');
+        }
     }
 
     public function create()
