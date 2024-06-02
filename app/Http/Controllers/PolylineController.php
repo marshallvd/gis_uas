@@ -58,5 +58,24 @@ class PolylineController extends Controller
         
         ]);
     }
+
+    public function destroy($id)
+    {
+        $token = session('token');
+
+        $client = new \GuzzleHttp\Client();
+        $response = $client->request('DELETE', 'https://gisapis.manpits.xyz/api/ruasjalan/' . $id, [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token,
+                'Accept' => 'application/json',
+            ],
+        ]);
+
+        if ($response->getStatusCode() == 200) {
+            return redirect()->route('polyline.index')->with('success', 'Data polyline berhasil dihapus.');
+        } else {
+            return redirect()->back()->with('error', 'Gagal menghapus data polyline.');
+        }
+    }
 }
 
