@@ -185,7 +185,7 @@
                 <!-- Tombol Submit dan Reset -->
                 <div class="flex justify-between">
                     <button type="submit" class="btn btn-primary w-1/2 mt-4">Tambah Jalan</button>
-                    <button type="reset" class="btn btn-secondary w-1/2 mt-4 ml-2">Reset</button>
+                    <button type="reset" class="btn btn-accent w-1/2 mt-4 ml-2">Reset</button>
                 </div>
             </form>
         </div>
@@ -462,7 +462,9 @@ crossorigin=""></script>
                 throw new Error(body.message || 'Gagal menyimpan data.');
             }
             console.log('Data berhasil disimpan:', body);
-            alert('Data berhasil disimpan.');
+            // alert('Data berhasil disimpan.');
+            // Redirect to index page after successful data submission
+            window.location.href = "{{ route('polyline.index') }}";
         })
         .catch(error => {
             console.error('Terjadi kesalahan:', error);

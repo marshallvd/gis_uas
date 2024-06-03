@@ -29,8 +29,12 @@ Route::get('/home', function () {
 Route::get('/polyline', [PolylineController::class, 'index'])->name('polyline.index');
 Route::get('/polyline/create', [PolylineController::class, 'create'])->name('polyline.create');
 Route::post('/polyline/store', [PolylineController::class, 'store'])->name('polyline.store');
-Route::get('/polyline/edit', [PolylineController::class, 'edit'])->name('polyline.edit');
+// Route::get('/polyline/edit', [PolylineController::class, 'edit'])->name('polyline.edit');
 Route::delete('/polyline/{id}', [PolylineController::class, 'destroy'])->name('polyline.destroy');
+// In your routes file (e.g., web.php)
+Route::get('polyline/{id}/edit', [PolylineController::class, 'edit'])->name('polyline.edit');
+
+
 
 
 

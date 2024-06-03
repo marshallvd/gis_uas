@@ -95,7 +95,7 @@
                         <td>{{ $polyline['jenisjalan_id'] }}</td>
                         <td>{{ $polyline['keterangan'] }}</td>
                         <td class="flex space-x-2">
-                            <a href="{{ route('polyline.edit', $polyline['id']) }}" class="btn btn-primary">Edit</a>
+                            <a href="{{ route('polyline.edit', $polyline['id']) }}"class="btn btn-accent">Edit</a>
                             <form action="{{ route('polyline.destroy', $polyline['id']) }}" method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')
@@ -124,7 +124,7 @@ crossorigin=""></script>
 <script>
     document.addEventListener('DOMContentLoaded', async function () {
         const token = localStorage.getItem("token");
-        const api_main_url = localStorage.getItem("api_main_url");
+        const api_main_url = localStorage.getItem("https://gisapis.manpits.xyz/api/");
 
         if (!token || !api_main_url) {
             console.error('Token or API URL is missing');
@@ -135,6 +135,14 @@ crossorigin=""></script>
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json"
         };
+        async function fetchRuasJalan() {
+            const response = await axios.get(api_main_url + "ruasjalan", { headers });
+            if (response.status !== 200) {
+                throw new Error('Failed to fetch ruas jalan data: ' + response.statusText);
+            }
+            return response.data;
+        }
+
 
         async function fetchData(url) {
             const response = await fetch(url, { headers });
@@ -162,6 +170,8 @@ crossorigin=""></script>
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
 
+            // Tambahkan polylines ke peta
+            const polylinesArray = [];
             if (Array.isArray(data_ruas.ruasjalan)) {
                 data_ruas.ruasjalan.forEach(ruas => {
                     if (typeof ruas === 'object' && ruas !== null && 'nama_ruas' in ruas) {
@@ -170,6 +180,9 @@ crossorigin=""></script>
                         // Tambahkan polyline ke peta
                         const polyline = L.polyline(JSON.parse(ruas.paths), { color: 'blue' }).addTo(map);
                         map.fitBounds(polyline.getBounds());
+
+                        // Tambahkan polyline ke dalam array polylinesArray
+                        polylinesArray.push(polyline);
 
                         // Tambahkan data ke tabel
                         const eksisting = eksistingData.eksisting.find(e => e.id == ruas.eksisting_id);
@@ -204,6 +217,10 @@ crossorigin=""></script>
                 console.error('Invalid data_ruas.ruasjalan:', data_ruas.ruasjalan);
             }
 
+            // Atur tampilan peta agar memperlihatkan semua polyline yang ditambahkan
+            const group = new L.featureGroup(polylinesArray); // Mengumpulkan semua polyline dalam sebuah feature group
+            map.fitBounds(group.getBounds()); // Mengatur tampilan peta agar menampilkan semua polyline dalam group
+
             document.querySelectorAll('.btn-danger').forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -234,7 +251,8 @@ crossorigin=""></script>
         }
     });
 
-    var map = L.map('map').setView([-8.409518, 115.188919], 13);
+
+    var map = L.map('map').setView([-8.409518, 115.188919], 10);
 
     // Adding multiple basemaps
     const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -343,9 +361,6 @@ crossorigin=""></script>
         // Reset koordinat
         document.getElementById('latlng').value = '';
     });
-
-
-
 
 </script>
 @endpush
