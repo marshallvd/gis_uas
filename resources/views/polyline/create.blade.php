@@ -423,8 +423,7 @@ crossorigin=""></script>
 
         // Mengumpulkan data dari formulir
         const formData = {
-            // paths: polyline.encode(drawnItems.getLayers()[0].getLatLngs()),
-            paths: document.getElementById('latlng').value.replace(/\n/g, ' '),
+            paths: document.getElementById('latlng').value, // sudah terenkripsi
             desa_id: document.getElementById('desa').value,
             kode_ruas: document.getElementById('kode_ruas').value,
             nama_ruas: document.getElementById('nama_ruas').value,
@@ -479,7 +478,7 @@ crossorigin=""></script>
 
 
 
-    var map = L.map('map').setView([-8.409518, 115.188919], 13);
+    var map = L.map('map').setView([-8.409518, 115.188919], 11);
 
     // Adding multiple basemaps
     const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -545,6 +544,8 @@ crossorigin=""></script>
         var latlngString = latlngs.map(function(latlng) {
             return `${latlng.lat}, ${latlng.lng}`;
         }).join('\n');
+
+        
 
         document.getElementById('latlng').value = latlngString;
 

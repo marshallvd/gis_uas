@@ -50,6 +50,21 @@
             flex: 1;
             margin: 0 10px;
         }
+
+        .leaflet-popup-content-wrapper {
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .leaflet-popup-content {
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .custom-popup .leaflet-popup-content-wrapper {
+            background-color: transparent;
+            box-shadow: none;
+        }
     </style>
 @endsection
 
@@ -69,33 +84,33 @@
     <div class="overflow-x-auto">
         <div id="map" class="w-full h-96 mb-4"></div>
         <table class="table w-full">
-            <thead>
+            <thead class="bg-gray-700 text-white">
                 <tr>
-                    <th>Nama Ruas</th>
-                    <th>Koordinat</th>
-                    <th>Panjang</th>
-                    <th>Lebar</th>
-                    <th>Eksisting</th>
-                    <th>Kondisi</th>
-                    <th>Jenis Jalan</th>
-                    <th>Keterangan</th>
-                    <th>Action</th>
+                    <th class="p-2">Nama Ruas</th>
+                    <th class="p-2">Koordinat</th>
+                    <th class="p-2">Panjang</th>
+                    <th class="p-2">Lebar</th>
+                    <th class="p-2">Eksisting</th>
+                    <th class="p-2">Kondisi</th>
+                    <th class="p-2">Jenis Jalan</th>
+                    <th class="p-2">Keterangan</th>
+                    <th class="p-2">Action</th>
                 </tr>
             </thead>
             <tbody id="polylineTableBody">
                 @if(isset($polylines['ruasjalan']) && is_array($polylines['ruasjalan']))
                     @foreach ($polylines['ruasjalan'] as $polyline)
                     <tr>
-                        <td>{{ $polyline['nama_ruas'] }}</td>
-                        <td>{{ $polyline['paths'] }}</td>
-                        <td>{{ $polyline['panjang'] }}</td>
-                        <td>{{ $polyline['lebar'] }}</td>
-                        <td>{{ $polyline['eksisting_id'] }}</td>
-                        <td>{{ $polyline['kondisi_id'] }}</td>
-                        <td>{{ $polyline['jenisjalan_id'] }}</td>
-                        <td>{{ $polyline['keterangan'] }}</td>
-                        <td class="flex space-x-2">
-                            <a href="{{ route('polyline.edit', $polyline['id']) }}"class="btn btn-accent">Edit</a>
+                        <td class="p-2">{{ $polyline['nama_ruas'] }}</td>
+                        <td class="p-2 truncate" title="{{ $polyline['paths'] }}">{{ Str::limit($polyline['paths'], 30) }}</td>
+                        <td class="p-2">{{ $polyline['panjang'] }}</td>
+                        <td class="p-2">{{ $polyline['lebar'] }}</td>
+                        <td class="p-2">{{ $polyline['eksisting_id'] }}</td>
+                        <td class="p-2">{{ $polyline['kondisi_id'] }}</td>
+                        <td class="p-2">{{ $polyline['jenisjalan_id'] }}</td>
+                        <td class="p-2">{{ $polyline['keterangan'] }}</td>
+                        <td class="p-2 flex space-x-2">
+                            <a href="{{ route('polyline.edit', $polyline['id']) }}" class="btn btn-accent">Edit</a>
                             <form action="{{ route('polyline.destroy', $polyline['id']) }}" method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')
@@ -135,6 +150,7 @@ crossorigin=""></script>
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json"
         };
+
         async function fetchRuasJalan() {
             const response = await axios.get(api_main_url + "ruasjalan", { headers });
             if (response.status !== 200) {
@@ -145,22 +161,20 @@ crossorigin=""></script>
 
 
         async function fetchData(url) {
-            const response = await fetch(url, { headers });
-            if (!response.ok) {
-                throw new Error('Network response was not ok ' + response.statusText);
+            const response = await axios.get(url, { headers });
+            if (response.status !== 200) {
+                throw new Error('Failed to fetch data: ' + response.statusText);
             }
-            return response.json();
+            return response.data;
         }
 
         try {
             console.log('Fetching data from API...');
-            const data_region = await fetchData(api_main_url + "api/mregion");
-            const data_ruas = await fetchData(api_main_url + "api/ruasjalan");
-            const eksistingData = await fetchData(api_main_url + "api/meksisting");
-            const kondisiData = await fetchData(api_main_url + "api/mkondisi");
-            const jenisJalanData = await fetchData(api_main_url + "api/mjenisjalan");
+            const data_ruas = await fetchData(api_main_url + "ruasjalan");
+            const eksistingData = await fetchData(api_main_url + "meksisting");
+            const kondisiData = await fetchData(api_main_url + "mkondisi");
+            const jenisJalanData = await fetchData(api_main_url + "mjenisjalan");
 
-            console.log('Data Region:', data_region);
             console.log('Data Ruas:', data_ruas);
 
             const tableBody = document.getElementById("polylineTableBody");
@@ -181,40 +195,49 @@ crossorigin=""></script>
                         const polyline = L.polyline(JSON.parse(ruas.paths), { color: 'blue' }).addTo(map);
                         map.fitBounds(polyline.getBounds());
 
-                        // Tambahkan polyline ke dalam array polylinesArray
-                        polylinesArray.push(polyline);
-
-                        // Tambahkan data ke tabel
+                        // Tambahkan popup ke polyline
                         const eksisting = eksistingData.eksisting.find(e => e.id == ruas.eksisting_id);
                         const kondisi = kondisiData.kondisi.find(k => k.id == ruas.kondisi_id);
                         const jenisjalan = jenisJalanData.jenisjalan.find(j => j.id == ruas.jenisjalan_id);
 
+                        const popupContent = `
+                            <div class="p-4">
+                                <h3 class="text-lg font-bold mb-2">${ruas.nama_ruas}</h3>
+                                <p><span class="font-bold">Panjang:</span> ${ruas.panjang} meter</p>
+                                <p><span class="font-bold">Lebar:</span> ${ruas.lebar} meter</p>
+                                <p><span class="font-bold">Eksisting:</span> ${eksisting ? eksisting.nama : '-'}</p>
+                                <p><span class="font-bold">Kondisi:</span> ${kondisi ? kondisi.nama : '-'}</p>
+                                <p><span class="font-bold">Jenis Jalan:</span> ${jenisjalan ? jenisjalan.nama : '-'}</p>
+                                <p><span class="font-bold">Keterangan:</span> ${ruas.keterangan}</p>
+                            </div>
+                        `;
+
+                        const popup = L.popup({
+                            maxWidth: 300,
+                            className: 'custom-popup'
+                        }).setContent(popupContent);
+                        polyline.bindPopup(popup);
+
+                        // Tambahkan polyline ke dalam array polylinesArray
+                        polylinesArray.push(polyline);
+
+                        // Tambahkan data ke tabel
                         const newRow = document.createElement("tr");
                         newRow.innerHTML = `
-                            <td>${ruas.nama_ruas}</td>
-                            <td>${ruas.paths}</td>
-                            <td>${ruas.panjang}</td>
-                            <td>${ruas.lebar}</td>
-                            <td>${eksisting ? eksisting.eksisting : '-'}</td>
-                            <td>${kondisi ? kondisi.kondisi : '-'}</td>
-                            <td>${jenisjalan ? jenisjalan.jenisjalan : '-'}</td>
-                            <td>${ruas.keterangan}</td>
-                            <td class="flex space-x-2">
-                                <a href="/polyline/edit/${ruas.id}" class="btn btn-primary">Edit</a>
-                                <form action="/polyline/destroy/${ruas.id}" method="POST" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger">Delete</button>
-                                </form>
-                            </td>
+                            <td class="p-2">${ruas.nama_ruas}</td>
+                            <td class="p-2 truncate" title="${ruas.paths}">${ruas.paths.slice(0, 30)}...</td>
+                            <td class="p-2">${ruas.panjang}</td>
+                            <td class="p-2">${ruas.lebar}</td>
+                            <td class="p-2">${eksisting ? eksisting.nama : '-'}</td>
+                            <td class="p-2">${kondisi ? kondisi.nama : '-'}</td>
+                            <td class="p-2">${jenisjalan ? jenisjalan.nama : '-'}</td>
+                            <td class="p-2">${ruas.keterangan}</td>
                         `;
                         tableBody.appendChild(newRow);
                     } else {
                         console.error('Invalid ruas data:', ruas);
                     }
                 });
-            } else {
-                console.error('Invalid data_ruas.ruasjalan:', data_ruas.ruasjalan);
             }
 
             // Atur tampilan peta agar memperlihatkan semua polyline yang ditambahkan

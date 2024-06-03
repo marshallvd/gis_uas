@@ -8,10 +8,12 @@ use GuzzleHttp\Client;
 
 class PolylineController extends Controller
 {
+
+
     public function index()
     {
         $token = session('token');
-    
+
         $client = new Client();
         $response = $client->request('GET', 'https://gisapis.manpits.xyz/api/ruasjalan', [
             'headers' => [
@@ -19,9 +21,15 @@ class PolylineController extends Controller
                 'Accept' => 'application/json',
             ],
         ]);
-    
+
         if ($response->getStatusCode() == 200) {
             $polylines = json_decode($response->getBody(), true);
+
+            // Mendekripsi koordinat sebelum mengirimkan ke tampilan
+            foreach ($polylines['ruasjalan'] as &$polyline) {
+                $polyline['paths'] = $this->decodePolyline($polyline['paths']);
+            }
+
             return view('polyline.index', compact('polylines'));
         } else {
             return redirect()->back()->with('error', 'Failed to fetch data from API');
@@ -41,12 +49,12 @@ class PolylineController extends Controller
             'coordinates.*.lat' => 'required|numeric',
             'coordinates.*.lng' => 'required|numeric',
         ]);
-
+    
         $polyline = new Polyline();
         $polyline->name = $request->name;
-        $polyline->coordinates = json_encode($request->coordinates);
+        $polyline->coordinates = $this->encodePolyline(json_encode($request->coordinates)); // Mengenkripsi koordinat
         $polyline->save();
-
+    
         return redirect()->route('polyline.index')->with('success', 'Polyline created successfully.');
     }
 
@@ -130,7 +138,7 @@ class PolylineController extends Controller
             return [];
         }
     }
-    
+
 
     public function destroy($id)
     {
@@ -149,5 +157,29 @@ class PolylineController extends Controller
             return redirect()->back()->with('error', 'Gagal menghapus data polyline.');
         }
     }
+
+    
+    private function encodePolyline($polyline)
+    {
+        // Enkripsi polyline menggunakan simple XOR cipher
+        $key = 'your_secret_key_here';
+        $result = '';
+        for ($i = 0; $i < strlen($polyline); $i++) {
+            $result .= chr(ord($polyline[$i]) ^ ord($key[$i % strlen($key)]));
+        }
+        return $result;
+    }
+
+    private function decodePolyline($encodedPolyline)
+    {
+        // Dekripsi polyline menggunakan simple XOR cipher
+        $key = 'your_secret_key_here';
+        $result = '';
+        for ($i = 0; $i < strlen($encodedPolyline); $i++) {
+            $result .= chr(ord($encodedPolyline[$i]) ^ ord($key[$i % strlen($key)]));
+        }
+        return $result;
+    }
+
 }
 

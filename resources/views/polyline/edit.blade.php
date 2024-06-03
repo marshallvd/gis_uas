@@ -184,7 +184,7 @@
 
                 <!-- Tombol Submit dan Reset -->
                 <div class="flex justify-between">
-                    <button type="submit" class="btn btn-primary w-1/2 mt-4">Tambah Jalan</button>
+                    <button type="submit" class="btn btn-primary w-1/2 mt-4">Update Jalan</button>
                     <button type="reset" class="btn btn-accent w-1/2 mt-4 ml-2">Reset</button>
                 </div>
             </form>
@@ -219,6 +219,57 @@ crossorigin=""></script>
 
 
     document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.row-clickable').forEach(row => {
+            row.addEventListener('click', () => {
+                // Mendapatkan ID polyline dari data baris yang diklik
+                const polylineId = row.dataset.polylineId;
+
+                // Kode JavaScript untuk mengambil data polyline dari server
+                // dan mengisi formulir dengan data tersebut akan diletakkan di sini
+                // (seperti contoh kode sebelumnya)
+
+                console.log('Polyline ID:', polylineId); // Untuk tujuan debugging
+                fetch(`https://gisapis.manpits.xyz/api/ruasjalan/${polylineId}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Polyline data:', data); // Log data polyline untuk debugging
+                    
+                    // Ambil koordinat polyline dari data yang diterima
+                    const polylineCoordinates = data.koordinat.map(coord => [coord.lat, coord.lng]);
+                    
+                    // Buat polyline menggunakan koordinat yang diperoleh
+                    const polyline = L.polyline(polylineCoordinates).addTo(drawnItems);
+
+                    // Atur tampilan peta untuk menampilkan polyline yang ditambahkan
+                    map.fitBounds(polyline.getBounds());
+
+                    // Lengkapi data formulir sesuai dengan data polyline yang diterima
+                    document.getElementById('nama_ruas').value = data.nama_ruas;
+                    document.getElementById('lebar').value = data.lebar;
+                    document.getElementById('kode_ruas').value = data.kode_ruas;
+                    document.getElementById('keterangan').value = data.keterangan;
+
+                    // Setel nilai dropdown sesuai dengan data yang diterima
+                    document.getElementById('eksisting').value = data.eksisting_id;
+                    document.getElementById('kondisi').value = data.kondisi_id;
+                    document.getElementById('jenis_jalan').value = data.jenisjalan_id;
+
+                    // Setel nilai dropdown provinsi, kabupaten, kecamatan, desa sesuai dengan data yang diterima
+                    document.getElementById('province').value = data.provinsi_id;
+                    document.getElementById('kabupaten').value = data.kabupaten_id;
+                    document.getElementById('kecamatan').value = data.kecamatan_id;
+                    document.getElementById('desa').value = data.desa_id;
+                })
+                .catch(error => {
+                    console.error('Error fetching polyline data:', error); // Log error
+                });
+            });
+        });
+
         const token = document.querySelector('meta[name="api-token"]').getAttribute('content');
         console.log('Token:', token);
 
@@ -477,7 +528,7 @@ crossorigin=""></script>
 
 
 
-    var map = L.map('map').setView([-8.409518, 115.188919], 13);
+    var map = L.map('map').setView([-8.409518, 115.188919], 11);
 
     // Adding multiple basemaps
     const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
