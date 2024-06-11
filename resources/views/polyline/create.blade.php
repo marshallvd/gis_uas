@@ -72,6 +72,7 @@
                 <div class="form-section">
                     <!-- Bagian Pertama -->
                     <div>
+                        <h2 class="text-lg font-semibold mb-2  text-center">Informasi Ruas Jalan</h2>
                         <!-- Nama Ruas -->
                         <div class="form-control">
                             <label class="label" for="nama_ruas">
@@ -104,6 +105,7 @@
 
                     <!-- Bagian Kedua -->
                     <div>
+                        <h2 class="text-lg font-semibold mb-2  text-center">Lokasi Ruas Jalan</h2>
                         <!-- Dropdown Provinsi -->
                         <div class="form-control">
                             <label class="label" for="province">
@@ -144,6 +146,7 @@
 
                     <!-- Bagian Ketiga -->
                     <div>
+                        <h2 class="text-lg font-semibold mb-2  text-center">Detail Ruas Jalan</h2>
                         <!-- Dropdown Eksisting -->
                         <div class="form-control">
                             <label class="label" for="eksisting">
@@ -197,7 +200,6 @@
 
 @push('javascript')
 
-
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
 integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
 crossorigin=""></script>
@@ -205,6 +207,7 @@ crossorigin=""></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-geometryutil@0.0.2/dist/leaflet.geometryutil.min.js"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 
 
 <script>
@@ -423,15 +426,15 @@ crossorigin=""></script>
 
         // Mengumpulkan data dari formulir
         const formData = {
-            paths: document.getElementById('latlng').value, // sudah terenkripsi
+            paths: document.getElementById('latlng').value,
             desa_id: document.getElementById('desa').value,
             kode_ruas: document.getElementById('kode_ruas').value,
             nama_ruas: document.getElementById('nama_ruas').value,
             panjang: calculateLength(drawnItems.getLayers()[0].getLatLngs()), // Menggunakan fungsi calculateLength untuk menghitung panjang
-            lebar: document.getElementById('lebar').value,
-            eksisting_id: document.getElementById('eksisting').value,
-            kondisi_id: document.getElementById('kondisi').value,
-            jenisjalan_id: document.getElementById('jenis_jalan').value,
+            lebar: parseFloat(document.getElementById('lebar').value),
+            eksisting_id: parseInt(document.getElementById('eksisting').value),
+            kondisi_id: parseInt(document.getElementById('kondisi').value),
+            jenisjalan_id: parseInt(document.getElementById('jenis_jalan').value),
             keterangan: document.getElementById('keterangan').value
         };
 
@@ -455,15 +458,39 @@ crossorigin=""></script>
             }
             return response.json().then(data => ({ status: response.status, body: data }));
         })
+        // .then(({ status, body }) => {
+        //     if (status !== 200) {
+        //         console.error('Error data:', body); // Log error data
+        //         throw new Error(body.message || 'Gagal menyimpan data.');
+        //     }
+        //     console.log('Data berhasil disimpan:', body);
+        //     // alert('Data berhasil disimpan.');
+        //     // Redirect to index page after successful data submission
+        //     window.location.href = "{{ route('polyline.index') }}";
+        // })
+        // .catch(error => {
+        //     console.error('Terjadi kesalahan:', error);
+        //     if (error.message.includes('Unexpected token')) {
+        //         console.error('Respons API tidak valid:', error.message);
+        //     } else if (error.message.includes('HTTP error')) {
+        //         console.error('Server mengembalikan status error:', error.message);
+        //     }
+        //     alert(`Terjadi kesalahan: ${error.message}`);
+        // });
         .then(({ status, body }) => {
             if (status !== 200) {
                 console.error('Error data:', body); // Log error data
                 throw new Error(body.message || 'Gagal menyimpan data.');
             }
             console.log('Data berhasil disimpan:', body);
-            // alert('Data berhasil disimpan.');
-            // Redirect to index page after successful data submission
-            window.location.href = "{{ route('polyline.index') }}";
+            Swal.fire({
+                icon: 'success',
+                title: 'Sukses!',
+                text: 'Data berhasil disimpan.'
+            }).then(() => {
+                // Redirect to index page after successful data submission
+                window.location.href = "{{ route('polyline.index') }}";
+            });
         })
         .catch(error => {
             console.error('Terjadi kesalahan:', error);
@@ -472,8 +499,13 @@ crossorigin=""></script>
             } else if (error.message.includes('HTTP error')) {
                 console.error('Server mengembalikan status error:', error.message);
             }
-            alert(`Terjadi kesalahan: ${error.message}`);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: `Terjadi kesalahan: ${error.message}`
+            });
         });
+
     });
 
 
@@ -530,58 +562,55 @@ crossorigin=""></script>
     });
     map.addControl(drawControl);
 
-    map.on('draw:created', function (event) {
-        var layer = event.layer;
-        drawnItems.addLayer(layer);
+    map.on(L.Draw.Event.CREATED, function (event) {
+            var layer = event.layer;
+            drawnItems.addLayer(layer);
 
-        var latlngs;
-        if (layer instanceof L.Polyline) {
-            latlngs = layer.getLatLngs();
-        } else if (layer instanceof L.Polygon) {
-            latlngs = layer.getLatLngs()[0]; // outer ring
-        }
-
-        var latlngString = latlngs.map(function(latlng) {
-            return `${latlng.lat}, ${latlng.lng}`;
-        }).join('\n');
-
-        
-
-        document.getElementById('latlng').value = latlngString;
-
-        // Calculate the length of the polyline
-        var length = calculateLength(latlngs);
-        console.log('Length:', length);
-
-        // Display the length in a suitable HTML element (e.g., an input field or a div)
-        alert(`Panjang Polyline: ${length.toFixed(2)} meters`);
-    });
-
-    map.on('draw:edited', function (event) {
-        var layers = event.layers;
-        var latlngs = [];
-
-        layers.eachLayer(function (layer) {
+            var latlngs;
             if (layer instanceof L.Polyline) {
-                latlngs = latlngs.concat(layer.getLatLngs());
+                latlngs = layer.getLatLngs();
             } else if (layer instanceof L.Polygon) {
-                latlngs = latlngs.concat(layer.getLatLngs()[0]); // outer ring
+                latlngs = layer.getLatLngs()[0]; // outer ring
             }
+
+            var latlngString = latlngs.map(function(latlng) {
+                return `${latlng.lat},${latlng.lng}`;
+            }).join(' ');
+
+            document.getElementById('latlng').value = latlngString;
+
+            // Calculate the length of the polyline
+            var length = calculateLength(latlngs);
+            console.log('Length:', length);
+
+            alert(`Panjang Polyline: ${length.toFixed(2)} meters`);
         });
 
-        var latlngString = latlngs.map(function(latlng) {
-            return `${latlng.lat}, ${latlng.lng}`;
-        }).join('\n');
+        map.on(L.Draw.Event.EDITED, function (event) {
+            var layers = event.layers;
+            var latlngs = [];
 
-        document.getElementById('latlng').value = latlngString;
+            layers.eachLayer(function (layer) {
+                if (layer instanceof L.Polyline) {
+                    latlngs = latlngs.concat(layer.getLatLngs());
+                } else if (layer instanceof L.Polygon) {
+                    latlngs = latlngs.concat(layer.getLatLngs()[0]); // outer ring
+                }
+            });
 
-        // Calculate the length of the polyline
-        var length = calculateLength(latlngs);
-        console.log('Length:', length);
+            var latlngString = latlngs.map(function(latlng) {
+                return `${latlng.lat},${latlng.lng}`;
+            }).join(' ');
 
-        // Display the length in a suitable HTML element (e.g., an input field or a div)
-        alert(`Panjang Polyline: ${length.toFixed(2)} meters`);
-    });
+            document.getElementById('latlng').value = latlngString;
+
+            // Calculate the length of the polyline
+            var length = calculateLength(latlngs);
+            console.log('Length:', length);
+
+            alert(`Panjang Polyline: ${length.toFixed(2)} meters`);
+        });
+
 
     document.getElementById('form').addEventListener('reset', function() {
         // Menghapus semua layer dari drawnItems ketika tombol reset ditekan

@@ -67,43 +67,52 @@
 
     <div class="custom-card">
         <div class="custom-card-body">
-            <form action="{{ route('polyline.store') }}" method="POST" enctype="multipart/form-data" id="form" name="form">
+            <form action="{{ route('polyline.update', $data_ruas_jalan->id ?? '') }}" method="POST" enctype="multipart/form-data" id="form" name="form">
                 @csrf
+                @method('PUT')
                 <div class="form-section">
                     <!-- Bagian Pertama -->
                     <div>
+                        {{-- @php
+                            dd($data_ruas_jalan);
+                        @endphp --}}
                         <!-- Nama Ruas -->
                         <div class="form-control">
                             <label class="label" for="nama_ruas">
                                 <span class="label-text"><b>Nama Ruas</b></span>
                             </label>
-                            <input type="text" class="input input-bordered w-full" id="nama_ruas" name="nama_ruas" required />
+                            
+                            <input type="text" class="input input-bordered w-full" id="nama_ruas" name="nama_ruas" value="{{ old('namaRuas', $data_ruas_jalan->namaRuas ?? '') }}" required />
                         </div>
                         <!-- Lebar Ruas -->
                         <div class="form-control">
                             <label class="label" for="lebar">
                                 <span class="label-text"><b>Lebar Ruas</b></span>
                             </label>
-                            <input type="text" class="input input-bordered w-full" id="lebar" name="lebar" required />
+                            <input type="text" class="input input-bordered w-full" id="lebar" name="lebar" value="{{ $data_ruas_jalan->lebar ?? '' }}" required />
+                            
                         </div>
                         <!-- Kode Ruas -->
                         <div class="form-control">
                             <label class="label" for="kode_ruas">
                                 <span class="label-text"><b>Kode Ruas</b></span>
                             </label>
-                            <input type="text" class="input input-bordered w-full" id="kode_ruas" name="kode_ruas" required />
+                            <input type="text" class="input input-bordered w-full" id="kode_ruas" name="kode_ruas" value="{{ $data_ruas_jalan->kode_ruas ?? '' }}" required />
                         </div>
                         <!-- Keterangan -->
                         <div class="form-control">
                             <label class="label" for="keterangan">
                                 <span class="label-text"><b>Keterangan</b></span>
                             </label>
-                            <input type="text" class="input input-bordered w-full" id="keterangan" name="keterangan" required />
+                            <input type="text" class="input input-bordered w-full" id="keterangan" name="keterangan" value="{{ $data_ruas_jalan->keterangan ?? '' }}" required />
                         </div>
                     </div>
 
                     <!-- Bagian Kedua -->
                     <div>
+                        {{-- @php
+                            dd($provinces);
+                        @endphp --}}
                         <!-- Dropdown Provinsi -->
                         <div class="form-control">
                             <label class="label" for="province">
@@ -111,39 +120,67 @@
                             </label>
                             <select class="select select-bordered w-full" id="province" name="province" required>
                                 <option value="">Pilih Provinsi</option>
+                                @foreach($provinces as $province)
+                                    <option value="{{ $province['id'] }}">{{ $province['provinsi'] }}</option>
+                                @endforeach
                             </select>
                         </div>
+                        
+
                         <!-- Dropdown Kabupaten -->
+                        {{-- @php
+                            dd($kabupatens);
+                        @endphp --}}
+                        <div cla
                         <div class="form-control">
                             <label class="label" for="kabupaten">
                                 <span class="label-text"><b>Pilih Kabupaten</b></span>
                             </label>
                             <select class="select select-bordered w-full" id="kabupaten" name="kabupaten" required>
                                 <option value="">Pilih Kabupaten</option>
+                                @foreach($kabupatens as $kabupaten)
+                                    <option value="{{ $kabupaten['id'] }}">{{ $kabupaten['kabupaten'] }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <!-- Dropdown Kecamatan -->
+                        {{-- @php
+                            dd($kecamatans);
+                        @endphp --}}
+                        <div cla
                         <div class="form-control">
                             <label class="label" for="kecamatan">
                                 <span class="label-text"><b>Pilih Kecamatan</b></span>
                             </label>
                             <select class="select select-bordered w-full" id="kecamatan" name="kecamatan" required>
                                 <option value="">Pilih Kecamatan</option>
+                                @foreach($kecamatans as $kecamatan)
+                                    <option value="{{ $kecamatan['id'] }}">{{ $kecamatan['kecamatan'] }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <!-- Dropdown Desa -->
+                        {{-- @php
+                            dd($desas);
+                        @endphp --}}
                         <div class="form-control">
                             <label class="label" for="desa">
                                 <span class="label-text"><b>Pilih Desa</b></span>
                             </label>
                             <select class="select select-bordered w-full" id="desa" name="desa" required>
                                 <option value="">Pilih Desa</option>
+                                @foreach($desas as $desa)
+                                    <option value="{{ $desa['id'] }}">{{ $desa['desa'] }}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
 
                     <!-- Bagian Ketiga -->
                     <div>
+                        {{-- @php
+                            dd($eksistings);
+                        @endphp --}}
                         <!-- Dropdown Eksisting -->
                         <div class="form-control">
                             <label class="label" for="eksisting">
@@ -151,24 +188,40 @@
                             </label>
                             <select class="select select-bordered w-full" id="eksisting" name="eksisting" required>
                                 <option value="">Pilih Material</option>
+                                @foreach($eksistings as $eksisting)
+                                    <option value="{{ $eksisting['id'] }}" {{ $data_ruas_jalan->ruasjalan->eksisting_id == $eksisting['id'] ? 'selected' : '' }}>
+                                        {{ $eksisting['eksisting'] }}
+                                    </option>
+                                @endforeach
+
+
                             </select>
                         </div>
                         <!-- Dropdown Kondisi -->
+                        {{-- @php
+                            dd($data_ruas_jalan);
+                        @endphp --}}
                         <div class="form-control">
                             <label class="label" for="kondisi">
                                 <span class="label-text"><b>Kondisi</b></span>
                             </label>
                             <select class="select select-bordered w-full" id="kondisi" name="kondisi" required>
                                 <option value="">Pilih Kondisi</option>
+                                @foreach($kondisis['eksisting'] as $kondisi)
+                                    <option value="{{ $kondisi['id'] }}" {{ $data_ruas_jalan->ruasjalan->kondisi_id == $kondisi['id'] ? 'selected' : '' }}>
+                                        {{ $kondisi['kondisi'] }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
+                        
                         <!-- Dropdown Jenis Jalan -->
                         <div class="form-control">
                             <label class="label" for="jenis_jalan">
                                 <span class="label-text"><b>Jenis Jalan</b></span>
                             </label>
                             <select class="select select-bordered w-full" id="jenis_jalan" name="jenis_jalan" required>
-                                <option value="">Pilih Jenis</option>
+                                <option value="{{ $kondisi['id'] }}" {{ isset($data_ruas_jalan->kondisi_id) && $data_ruas_jalan->kondisi_id == $kondisi['id'] ? 'selected' : '' }}>{{ $kondisi['kondisi'] }}</option>
                             </select>
                         </div>
 
@@ -177,7 +230,7 @@
                             <label class="label" for="latlng">
                                 <span class="label-text"><b>Latlng</b></span>
                             </label>
-                            <input type="text" class="input input-bordered w-full" id="latlng" name="latlng" required />
+                            <input type="text" class="input input-bordered w-full" id="latlng" name="latlng" value="{{ $data_ruas_jalan->paths ?? '' }}" required />
                         </div>
                     </div>
                 </div>
@@ -191,13 +244,10 @@
         </div>
     </div>
 </div>
-
 <meta name="api-token" content="{{ session('token') }}">
 @endsection
 
 @push('javascript')
-
-
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
 integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
 crossorigin=""></script>
@@ -206,9 +256,139 @@ crossorigin=""></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-geometryutil@0.0.2/dist/leaflet.geometryutil.min.js"></script>
 
 
-
 <script>
-    // Fungsi untuk menghitung panjang garis polyline
+    document.addEventListener('DOMContentLoaded', function () {
+        const token = document.querySelector('meta[name="api-token"]').getAttribute('content');
+        const api_main_url = 'https://gisapis.manpits.xyz/api/';
+        const map = L.map('map').setView([-8.409518, 115.188919], 11);
+
+        // Adding basemaps
+        const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 20,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        const Esri_World = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        });
+
+        const baseLayers = {
+            "OSM Tiles": tiles,
+            "ESRI World Imagery": Esri_World,
+        };
+
+        L.control.layers(baseLayers).addTo(map);
+
+        // Parse koordinat polyline dan tampilkan di peta
+        const polylineCoords = {!! json_encode($data_ruas_jalan->ruasjalan->paths) !!}.split(' ').map(coord => {
+            const [lat, lng] = coord.split(',').map(parseFloat);
+            return [lat, lng];
+        });
+
+
+        const polyline = L.polyline(polylineCoords, { color: 'red' }).addTo(map);
+        map.fitBounds(polyline.getBounds());
+
+        // Event listener untuk dropdown provinsi
+        document.getElementById('province').addEventListener('change', function() {
+            const provinceId = this.value;
+            const kabupatenSelect = document.getElementById('kabupaten');
+            const kecamatanSelect = document.getElementById('kecamatan');
+            const desaSelect = document.getElementById('desa');
+
+            // Reset dropdown yang bergantung
+            kabupatenSelect.innerHTML = '<option value="">Pilih Kabupaten</option>';
+            kecamatanSelect.innerHTML = '<option value="">Pilih Kecamatan</option>';
+            desaSelect.innerHTML = '<option value="">Pilih Desa</option>';
+
+            if (provinceId) {
+                fetch(api_main_url + 'kabupaten/' + provinceId, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    data.kabupaten.forEach(kabupaten => {
+                        const option = document.createElement('option');
+                        option.value = kabupaten.id;
+                        option.textContent = kabupaten.kabupaten;
+                        kabupatenSelect.appendChild(option);
+                    });
+                    // Set kabupaten yang sesuai dengan data yang diedit
+                    kabupatenSelect.value = {!! $data_ruas_jalan->desa->kecamatan->kabupaten_id ?? 'null' !!};
+                    // Trigger change event untuk memuat kecamatan
+                    kabupatenSelect.dispatchEvent(new Event('change'));
+                })
+                .catch(error => {
+                    console.error('Error fetching kabupaten:', error);
+                });
+            }
+        });
+
+        // Event listener untuk dropdown kabupaten
+        document.getElementById('kabupaten').addEventListener('change', function() {
+            const kabupatenId = this.value;
+            const kecamatanSelect = document.getElementById('kecamatan');
+            const desaSelect = document.getElementById('desa');
+
+            // Reset dropdown yang bergantung
+            kecamatanSelect.innerHTML = '<option value="">Pilih Kecamatan</option>';
+            desaSelect.innerHTML = '<option value="">Pilih Desa</option>';
+
+            if (kabupatenId) {
+                fetch(api_main_url + 'kecamatan/' + kabupatenId, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    data.kecamatan.forEach(kecamatan => {
+                        const option = document.createElement('option');
+                        option.value = kecamatan.id;
+                        option.textContent = kecamatan.kecamatan;
+                        kecamatanSelect.appendChild(option);
+                    });
+                    // Set kecamatan yang sesuai dengan data yang diedit
+                    kecamatanSelect.value = {!! $data_ruas_jalan->ruasjalan->desa->kecamatan_id ?? 'null' !!};
+                    // Trigger change event untuk memuat desa
+                    kecamatanSelect.dispatchEvent(new Event('change'));
+                })
+                .catch(error => {
+                    console.error('Error fetching kecamatan:', error);
+                });
+            }
+        });
+
+
+        // Event listener untuk dropdown kecamatan
+        document.getElementById('kecamatan').addEventListener('change', function() {
+            const kecamatanId = this.value;
+            const desaSelect = document.getElementById('desa');
+
+            // Reset dropdown desa
+            desaSelect.innerHTML = '<option value="">Pilih Desa</option>';
+
+            if (kecamatanId) {
+                fetch(api_main_url + 'desa/' + kecamatanId, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    data.desa.forEach(desa => {
+                        const option = document.createElement('option');
+                        option.value = desa.id;
+                        option.textContent = desa.desa;
+                        desaSelect.appendChild(option);
+                    });
+                    // Set desa yang sesuai dengan data yang diedit
+                    desaSelect.value = {!! $data_ruas_jalan->ruasjalan->desa_id ?? 'null' !!};
+                })
+                .catch(error => {
+                    console.error('Error fetching desa:', error);
+                });
+            }
+        });
+
+    });
+
     function calculateLength(latlngs) {
         let length = 0;
         for (let i = 0; i < latlngs.length - 1; i++) {
@@ -217,431 +397,46 @@ crossorigin=""></script>
         return length;
     }
 
-
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.row-clickable').forEach(row => {
-            row.addEventListener('click', () => {
-                // Mendapatkan ID polyline dari data baris yang diklik
-                const polylineId = row.dataset.polylineId;
-
-                // Kode JavaScript untuk mengambil data polyline dari server
-                // dan mengisi formulir dengan data tersebut akan diletakkan di sini
-                // (seperti contoh kode sebelumnya)
-
-                console.log('Polyline ID:', polylineId); // Untuk tujuan debugging
-                fetch(`https://gisapis.manpits.xyz/api/ruasjalan/${polylineId}`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Polyline data:', data); // Log data polyline untuk debugging
-                    
-                    // Ambil koordinat polyline dari data yang diterima
-                    const polylineCoordinates = data.koordinat.map(coord => [coord.lat, coord.lng]);
-                    
-                    // Buat polyline menggunakan koordinat yang diperoleh
-                    const polyline = L.polyline(polylineCoordinates).addTo(drawnItems);
-
-                    // Atur tampilan peta untuk menampilkan polyline yang ditambahkan
-                    map.fitBounds(polyline.getBounds());
-
-                    // Lengkapi data formulir sesuai dengan data polyline yang diterima
-                    document.getElementById('nama_ruas').value = data.nama_ruas;
-                    document.getElementById('lebar').value = data.lebar;
-                    document.getElementById('kode_ruas').value = data.kode_ruas;
-                    document.getElementById('keterangan').value = data.keterangan;
-
-                    // Setel nilai dropdown sesuai dengan data yang diterima
-                    document.getElementById('eksisting').value = data.eksisting_id;
-                    document.getElementById('kondisi').value = data.kondisi_id;
-                    document.getElementById('jenis_jalan').value = data.jenisjalan_id;
-
-                    // Setel nilai dropdown provinsi, kabupaten, kecamatan, desa sesuai dengan data yang diterima
-                    document.getElementById('province').value = data.provinsi_id;
-                    document.getElementById('kabupaten').value = data.kabupaten_id;
-                    document.getElementById('kecamatan').value = data.kecamatan_id;
-                    document.getElementById('desa').value = data.desa_id;
-                })
-                .catch(error => {
-                    console.error('Error fetching polyline data:', error); // Log error
-                });
-            });
-        });
-
-        const token = document.querySelector('meta[name="api-token"]').getAttribute('content');
-        console.log('Token:', token);
-
-        const provinceSelect = document.getElementById('province');
-        const kabupatenSelect = document.getElementById('kabupaten');
-        const kecamatanSelect = document.getElementById('kecamatan');
-        const desaSelect = document.getElementById('desa');
-        const eksistingSelect = document.getElementById('eksisting');
-        const kondisiSelect = document.getElementById('kondisi');
-        const jenisJalanSelect = document.getElementById('jenis_jalan');
-
-        fetch('https://gisapis.manpits.xyz/api/mregion', {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Provinces:', data.provinsi); // Log data provinces for debugging
-            
-            // Clear existing options
-            provinceSelect.innerHTML = '<option value="">Pilih Provinsi</option>';
-
-            const provinceSet = new Set();
-
-            data.provinsi.forEach(province => {
-                if (!provinceSet.has(province.id)) {
-                    provinceSet.add(province.id);
-                    const option = document.createElement('option');
-                    option.value = province.id;
-                    option.textContent = province.provinsi;
-                    provinceSelect.appendChild(option);
-                }
-            });
-        })
-        .catch(error => {
-            console.error('Error fetching provinces:', error); // Log error
-        });
-
-        provinceSelect.addEventListener('change', function() {
-            const provinceId = this.value;
-            kabupatenSelect.innerHTML = '<option value="">Pilih Kabupaten</option>';
-            kecamatanSelect.innerHTML = '<option value="">Pilih Kecamatan</option>';
-            desaSelect.innerHTML = '<option value="">Pilih Desa</option>';
-            
-            if (provinceId) {
-                fetch(`https://gisapis.manpits.xyz/api/kabupaten/${provinceId}`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Kabupaten:', data.kabupaten); // Log data kabupaten for debugging
-                    
-                    // Clear existing options
-                    kabupatenSelect.innerHTML = '<option value="">Pilih Kabupaten</option>';
-
-                    data.kabupaten.forEach(kabupaten => {
-                        const option = document.createElement('option');
-                        option.value = kabupaten.id;
-                        option.textContent = kabupaten.value;
-                        kabupatenSelect.appendChild(option);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error fetching kabupaten:', error); // Log error
-                });
-            }
-        });
-
-        kabupatenSelect.addEventListener('change', function() {
-            const kabupatenId = this.value;
-            kecamatanSelect.innerHTML = '<option value="">Pilih Kecamatan</option>';
-            desaSelect.innerHTML = '<option value="">Pilih Desa</option>';
-            
-            if (kabupatenId) {
-                fetch(`https://gisapis.manpits.xyz/api/kecamatan/${kabupatenId}`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Kecamatan:', data.kecamatan); // Log data kecamatan for debugging
-                    kecamatanSelect.innerHTML = '<option value="">Pilih Kecamatan</option>';
-                    data.kecamatan.forEach(kecamatan => {
-                        const option = document.createElement('option');
-                        option.value = kecamatan.id;
-                        option.textContent = kecamatan.value;
-                        kecamatanSelect.appendChild(option);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error fetching kecamatan:', error); // Log error
-                });
-            }
-        });
-
-        kecamatanSelect.addEventListener('change', function() {
-            const kecamatanId = this.value;
-            desaSelect.innerHTML = '<option value="">Pilih Desa</option>';
-            
-            if (kecamatanId) {
-                fetch(`https://gisapis.manpits.xyz/api/desa/${kecamatanId}`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Desa:', data.desa); // Log data desa for debugging
-                    desaSelect.innerHTML = '<option value="">Pilih Desa</option>';
-                    data.desa.forEach(desa => {
-                        const option = document.createElement('option');
-                        option.value = desa.id;
-                        option.textContent = desa.value;
-                        desaSelect.appendChild(option);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error fetching desa:', error); // Log error
-                });
-            }
-        });
-
-        // Mendapatkan data eksisting dari API
-    fetch('https://gisapis.manpits.xyz/api/meksisting', {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        }
-    })
-    .then(response => response.json())
-    // console.log(response.data)
-    .then(data => {
-        
-        console.log('Eksisting:', data.eksisting); // Log data eksisting untuk debugging
-        
-        // Mengisi dropdown eksisting dengan data dari API
-        eksistingSelect.innerHTML = '<option value="">Pilih Material</option>';
-        data.eksisting.forEach(eksisting => {
-            const option = document.createElement('option');
-            option.value = eksisting.id;
-            option.textContent = eksisting.eksisting;
-            eksistingSelect.appendChild(option);
-        });
-
-    })
-    .catch(error => {
-        console.error('Error fetching eksisting:', error); // Log error
-    });
-
-    
-    // Mendapatkan data jenis jalan dari API
-    fetch('https://gisapis.manpits.xyz/api/mjenisjalan', {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Jenis Jalan:', data.jenisjalan); // Log data jenis jalan untuk debugging
-        
-        // Mengisi dropdown jenis jalan dengan data dari API
-        jenisJalanSelect.innerHTML = '<option value="">Pilih Jenis</option>';
-        data.eksisting.forEach(eksisting => {
-            const option = document.createElement('option');
-            option.value = eksisting.id;
-            option.textContent = eksisting.jenisjalan;
-            jenisJalanSelect.appendChild(option);
-        });
-    })
-    .catch(error => {
-        console.error('Error fetching jenis jalan:', error); // Log error
-    });
-
-
-    fetch('https://gisapis.manpits.xyz/api/mkondisi', {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Kondisi:', data.kondisi); // Log data jenis jalan untuk debugging
-        
-        // Mengisi dropdown jenis jalan dengan data dari API
-        kondisiSelect.innerHTML = '<option value="">Kondisi</option>';
-        data.eksisting.forEach(eksisting => {
-            const option = document.createElement('option');
-            option.value = eksisting.id;
-            option.textContent = eksisting.kondisi;
-            kondisiSelect.appendChild(option);
-        });
-    })
-    .catch(error => {
-        console.error('Error fetching jenis jalan:', error); // Log error
-    });
-
+    // Fungsi untuk menangani pengiriman formulir
     document.getElementById('form').addEventListener('submit', function(event) {
-        event.preventDefault(); // Mencegah formulir dikirimkan secara langsung
+        event.preventDefault();
 
-        // Mengumpulkan data dari formulir
-        const formData = {
-            // paths: polyline.encode(drawnItems.getLayers()[0].getLatLngs()),
-            paths: document.getElementById('latlng').value.replace(/\n/g, ' '),
-            desa_id: document.getElementById('desa').value,
-            kode_ruas: document.getElementById('kode_ruas').value,
-            nama_ruas: document.getElementById('nama_ruas').value,
-            panjang: calculateLength(drawnItems.getLayers()[0].getLatLngs()), // Menggunakan fungsi calculateLength untuk menghitung panjang
-            lebar: document.getElementById('lebar').value,
-            eksisting_id: document.getElementById('eksisting').value,
-            kondisi_id: document.getElementById('kondisi').value,
-            jenisjalan_id: document.getElementById('jenis_jalan').value,
-            keterangan: document.getElementById('keterangan').value
-        };
-
-        console.log('Form data to be sent:', formData); // Tambahkan log ini
-
+        const formData = new FormData(this);
         const token = document.querySelector('meta[name="api-token"]').getAttribute('content');
 
-        // Membuat permintaan HTTP POST ke API
-        fetch('https://gisapis.manpits.xyz/api/ruasjalan', {
+        // Mendapatkan koordinat dari polyline yang digambar
+        const latlngs = drawnItems.getLayers()[0].getLatLngs();
+        const length = calculateLength(latlngs);
+        formData.set('panjang', length.toFixed(2)); // Tambahkan panjang ke formData
+
+        fetch(this.action, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'X-CSRF-TOKEN': token,
+                'Authorization': 'Bearer ' + token,
             },
-            body: JSON.stringify(formData)
+            body: formData
         })
         .then(response => {
-            console.log('Raw response:', response); // Log raw response
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error('Network response was not ok');
             }
-            return response.json().then(data => ({ status: response.status, body: data }));
+            return response.json();
         })
-        .then(({ status, body }) => {
-            if (status !== 200) {
-                console.error('Error data:', body); // Log error data
-                throw new Error(body.message || 'Gagal menyimpan data.');
+        .then(data => {
+            if (data.success) {
+                alert('Data berhasil diperbarui!');
+                window.location.href = '{{ route("polyline.index") }}';
+            } else {
+                alert('Gagal memperbarui data: ' + data.message);
             }
-            console.log('Data berhasil disimpan:', body);
-            alert('Data berhasil disimpan.');
         })
         .catch(error => {
-            console.error('Terjadi kesalahan:', error);
-            if (error.message.includes('Unexpected token')) {
-                console.error('Respons API tidak valid:', error.message);
-            } else if (error.message.includes('HTTP error')) {
-                console.error('Server mengembalikan status error:', error.message);
-            }
-            alert(`Terjadi kesalahan: ${error.message}`);
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat memperbarui data.');
         });
     });
 
-
-
-    var map = L.map('map').setView([-8.409518, 115.188919], 11);
-
-    // Adding multiple basemaps
-    const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 20,
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
-
-    var Esri_World = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-    });
-
-    var Esri_Map = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC',
-        maxZoom: 16
-    });
-
-    var Stadia_Dark = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.{ext}', {
-        minZoom: 0,
-        maxZoom: 20,
-        attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        ext: 'png'
-    });
-
-    var baseLayers = {
-        "OSM Tiles": tiles,
-        "ESRI World Imagery": Esri_World,
-        "ESRI Map": Esri_Map,
-        "Stadia Dark": Stadia_Dark
-    };
-
-    // Adding layer control to map
-    L.control.layers(baseLayers).addTo(map);
-
-    var drawnItems = new L.FeatureGroup();
-    map.addLayer(drawnItems);
-
-    var drawControl = new L.Control.Draw({
-        edit: {
-            featureGroup: drawnItems
-        },
-        draw: {
-            polyline: true,
-            polygon: true,
-            circle: false,
-            rectangle: false,
-            marker: false,
-            circlemarker: false
-        }
-    });
-    map.addControl(drawControl);
-
-    map.on('draw:created', function (event) {
-        var layer = event.layer;
-        drawnItems.addLayer(layer);
-
-        var latlngs;
-        if (layer instanceof L.Polyline) {
-            latlngs = layer.getLatLngs();
-        } else if (layer instanceof L.Polygon) {
-            latlngs = layer.getLatLngs()[0]; // outer ring
-        }
-
-        var latlngString = latlngs.map(function(latlng) {
-            return `${latlng.lat}, ${latlng.lng}`;
-        }).join('\n');
-
-        document.getElementById('latlng').value = latlngString;
-
-        // Calculate the length of the polyline
-        var length = calculateLength(latlngs);
-        console.log('Length:', length);
-
-        // Display the length in a suitable HTML element (e.g., an input field or a div)
-        alert(`Panjang Polyline: ${length.toFixed(2)} meters`);
-    });
-
-    map.on('draw:edited', function (event) {
-        var layers = event.layers;
-        var latlngs = [];
-
-        layers.eachLayer(function (layer) {
-            if (layer instanceof L.Polyline) {
-                latlngs = latlngs.concat(layer.getLatLngs());
-            } else if (layer instanceof L.Polygon) {
-                latlngs = latlngs.concat(layer.getLatLngs()[0]); // outer ring
-            }
-        });
-
-        var latlngString = latlngs.map(function(latlng) {
-            return `${latlng.lat}, ${latlng.lng}`;
-        }).join('\n');
-
-        document.getElementById('latlng').value = latlngString;
-
-        // Calculate the length of the polyline
-        var length = calculateLength(latlngs);
-        console.log('Length:', length);
-
-        // Display the length in a suitable HTML element (e.g., an input field or a div)
-        alert(`Panjang Polyline: ${length.toFixed(2)} meters`);
-    });
-
-    document.getElementById('form').addEventListener('reset', function() {
-        // Menghapus semua layer dari drawnItems ketika tombol reset ditekan
-        drawnItems.clearLayers();
-        // Reset koordinat
-        document.getElementById('latlng').value = '';
-    });
-
-    
-
-    
-});
 </script>
-
 @endpush
+

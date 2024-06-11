@@ -35,9 +35,9 @@
                             </li>
                             <li><a>Settings</a></li>
                             <li>
-                                <form action="{{ route('logout') }}" method="POST">
+                                <form action="{{ route('logout') }}" method="POST" id="logoutForm">
                                     @csrf
-                                    <button type="submit" >Logout</button>
+                                    <button type="button" onclick="logout()">Logout</button>
                                 </form>
                             </li>
                         </ul>
@@ -56,5 +56,11 @@
         @extends('layouts.footer')
     </div>
     @stack('javascript')
+    <script>
+        function logout() {
+            localStorage.removeItem('token');
+            document.getElementById('logoutForm').submit();
+        }
+    </script>
 </body>
 </html>

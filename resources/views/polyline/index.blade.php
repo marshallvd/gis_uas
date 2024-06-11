@@ -10,6 +10,24 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     
     <style>
+
+    #popupInfo {
+        z-index: 9999;
+    }
+
+    #popupInfo .bg-opacity-50 {
+        backdrop-filter: blur(10px);
+    }
+
+    #popupInfo .bg-white {
+        max-width: 600px;
+    }
+
+    #popupInfo #popupContent p {
+        margin-bottom: 0.5rem;
+    }
+
+
         #map { 
             height: 600px; 
             margin-top: 20px; 
@@ -71,7 +89,7 @@
 @section('contents')
 <div class="container mx-auto p-4">
     <div class="flex justify-between items-center mb-3">
-        <h1 class="text-2xl font-bold">Data Polyline</h1>
+        <h1 class="text-3xl font-bold">Data Polyline</h1>
         <a href="{{ route('polyline.create') }}" class="btn btn-outline btn-primary">Create Data</a>
     </div>
 
@@ -83,39 +101,47 @@
 
     <div class="overflow-x-auto">
         <div id="map" class="w-full h-96 mb-4"></div>
-        <table class="table w-full">
+        <table class="table w-full table-auto">
             <thead class="bg-gray-700 text-white">
                 <tr>
-                    <th class="p-2">Nama Ruas</th>
-                    <th class="p-2">Koordinat</th>
-                    <th class="p-2">Panjang</th>
-                    <th class="p-2">Lebar</th>
-                    <th class="p-2">Eksisting</th>
-                    <th class="p-2">Kondisi</th>
-                    <th class="p-2">Jenis Jalan</th>
-                    <th class="p-2">Keterangan</th>
-                    <th class="p-2">Action</th>
+                    <th class="p-2 text-center">Nama Ruas</th>
+                    <th class="p-2 text-center">Koordinat</th>
+                    <th class="p-2 text-center">Panjang</th>
+                    <th class="p-2 text-center">Lebar</th>
+                    <th class="p-2 text-center">Eksisting</th>
+                    <th class="p-2 text-center">Kondisi</th>
+                    <th class="p-2 text-center">Jenis Jalan</th>
+                    <th class="p-2 text-center">Keterangan</th>
+                    <th class="p-2 text-center">Action</th>
                 </tr>
             </thead>
             <tbody id="polylineTableBody">
                 @if(isset($polylines['ruasjalan']) && is_array($polylines['ruasjalan']))
                     @foreach ($polylines['ruasjalan'] as $polyline)
-                    <tr>
-                        <td class="p-2">{{ $polyline['nama_ruas'] }}</td>
-                        <td class="p-2 truncate" title="{{ $polyline['paths'] }}">{{ Str::limit($polyline['paths'], 30) }}</td>
-                        <td class="p-2">{{ $polyline['panjang'] }}</td>
-                        <td class="p-2">{{ $polyline['lebar'] }}</td>
-                        <td class="p-2">{{ $polyline['eksisting_id'] }}</td>
-                        <td class="p-2">{{ $polyline['kondisi_id'] }}</td>
-                        <td class="p-2">{{ $polyline['jenisjalan_id'] }}</td>
-                        <td class="p-2">{{ $polyline['keterangan'] }}</td>
-                        <td class="p-2 flex space-x-2">
-                            <a href="{{ route('polyline.edit', $polyline['id']) }}" class="btn btn-accent">Edit</a>
+                    <tr class="hover:bg-gray-100">
+                        <td class="p-2 text-center">{{ $polyline['nama_ruas'] }}</td>
+                        <td class="p-2 text-center truncate" title="{{ $polyline['paths'] }}">{{ Str::limit($polyline['paths'], 30) }}</td>
+                        <td class="p-2 text-center">{{ $polyline['panjang'] }}</td>
+                        <td class="p-2 text-center">{{ $polyline['lebar'] }}</td>
+                        <td class="p-2 text-center">{{ $polyline['eksisting_id'] }}</td>
+                        <td class="p-2 text-center">{{ $polyline['kondisi_id'] }}</td>
+                        <td class="p-2 text-center">{{ $polyline['jenisjalan_id'] }}</td>
+                        <td class="p-2 text-center">{{ $polyline['keterangan'] }}</td>
+                        <td class="p-2 text-center flex justify-center space-x-2">
+                            <button type="button" class="btn btn-warning btn-xs btn-detail" data-id="{{ $polyline['id'] }}">Detail</button>
+                            <form action="{{ route('polyline.edit', $polyline['id']) }}" method="GET" >
+                                @csrf
+                                @method('GET')
+                                <a href="{{ route('polyline.edit', $polyline['id']) }}" class="btn btn-accent btn-xs">Edit</a>
+                            </form>
+                            
+
                             <form action="{{ route('polyline.destroy', $polyline['id']) }}" method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-danger">Delete</button>
-                            </form>                            
+                                <button type="button" class=" btn btn-error btn-xs btn-delete" data-id="{{ $polyline['id'] }}">Delete</button>
+                            </form>   
+                            
                         </td>
                     </tr>
                     @endforeach
@@ -124,10 +150,16 @@
         </table>
     </div>
 </div>
+<meta name="api-token" content="{{ csrf_token() }}">
 @endsection
 
 
 @push('javascript')
+
+<script>
+    localStorage.setItem("token", "{{ session('token') }}");
+    localStorage.setItem("api_main_url", "https://gisapis.manpits.xyz/api/");
+</script>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
 integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
@@ -135,11 +167,13 @@ crossorigin=""></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-geometryutil@0.0.2/dist/leaflet.geometryutil.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
 <script>
     document.addEventListener('DOMContentLoaded', async function () {
         const token = localStorage.getItem("token");
-        const api_main_url = localStorage.getItem("https://gisapis.manpits.xyz/api/");
+        const api_main_url = localStorage.getItem("api_main_url");
 
         if (!token || !api_main_url) {
             console.error('Token or API URL is missing');
@@ -156,234 +190,207 @@ crossorigin=""></script>
             if (response.status !== 200) {
                 throw new Error('Failed to fetch ruas jalan data: ' + response.statusText);
             }
+            console.log('API Response:', response.data);
             return response.data;
         }
 
-
-        async function fetchData(url) {
-            const response = await axios.get(url, { headers });
-            if (response.status !== 200) {
-                throw new Error('Failed to fetch data: ' + response.statusText);
-            }
-            return response.data;
+        function parseCoordinates(coords) {
+            // Pisahkan string koordinat dengan tanda '-'
+            const coordinatePairs = coords.split(' ');
+            // Buat array untuk menampung koordinat yang telah diurai
+            let coordinates = [];
+            // Iterasi setiap pasangan koordinat
+            coordinatePairs.forEach(pair => {
+                // Pisahkan latitutde dan longitude dengan tanda ','
+                const [lat, lng] = pair.split(',').map(parseFloat);
+                // Jika latitutde dan longitude valid, tambahkan ke array coordinates
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    coordinates.push([lat, lng]);
+                } else {
+                    console.warn('Invalid coordinate pair:', pair);
+                }
+            });
+            return coordinates;
         }
+
+
+        function drawPolylines(polylineData) {
+            console.log('Drawing polylines:', polylineData);
+            polylineData.forEach(polyline => {
+                if (!polyline.paths) {
+                    console.warn('Polyline paths missing:', polyline);
+                    return;
+                }
+                let coordinates = parseCoordinates(polyline.paths);
+                if (coordinates.length === 0) {
+                    console.warn('No valid coordinates for polyline:', polyline);
+                    return;
+                }
+                const line = L.polyline(coordinates, { color: 'red' }).addTo(map);
+                map.fitBounds(line.getBounds());
+            });
+        }
+
 
         try {
             console.log('Fetching data from API...');
-            const data_ruas = await fetchData(api_main_url + "ruasjalan");
-            const eksistingData = await fetchData(api_main_url + "meksisting");
-            const kondisiData = await fetchData(api_main_url + "mkondisi");
-            const jenisJalanData = await fetchData(api_main_url + "mjenisjalan");
-
+            const data_ruas = await fetchRuasJalan();
             console.log('Data Ruas:', data_ruas);
 
-            const tableBody = document.getElementById("polylineTableBody");
-            const map = L.map('map').setView([-0.789275, 113.921327], 5);
+            if (typeof map === 'undefined') {
+                var map = L.map('map').setView([-8.409518, 115.188919], 10);
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
+                // Adding multiple basemaps
+                const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 20,
+                    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                }).addTo(map);
 
-            // Tambahkan polylines ke peta
+                var Esri_World = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                });
+
+                var Esri_Map = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Tiles &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC',
+                    maxZoom: 16
+                });
+
+                var Stadia_Dark = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.{ext}', {
+                    minZoom: 0,
+                    maxZoom: 20,
+                    attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                    ext: 'png'
+                });
+
+                var baseLayers = {
+                    "OSM Tiles": tiles,
+                    "ESRI World Imagery": Esri_World,
+                    "ESRI Map": Esri_Map,
+                    "Stadia Dark": Stadia_Dark
+                };
+
+                // Adding layer control to map
+                L.control.layers(baseLayers).addTo(map);
+            }
+
             const polylinesArray = [];
             if (Array.isArray(data_ruas.ruasjalan)) {
                 data_ruas.ruasjalan.forEach(ruas => {
                     if (typeof ruas === 'object' && ruas !== null && 'nama_ruas' in ruas) {
-                        console.log('Processing ruas:', ruas);
-
-                        // Tambahkan polyline ke peta
-                        const polyline = L.polyline(JSON.parse(ruas.paths), { color: 'blue' }).addTo(map);
-                        map.fitBounds(polyline.getBounds());
-
-                        // Tambahkan popup ke polyline
-                        const eksisting = eksistingData.eksisting.find(e => e.id == ruas.eksisting_id);
-                        const kondisi = kondisiData.kondisi.find(k => k.id == ruas.kondisi_id);
-                        const jenisjalan = jenisJalanData.jenisjalan.find(j => j.id == ruas.jenisjalan_id);
-
-                        const popupContent = `
-                            <div class="p-4">
-                                <h3 class="text-lg font-bold mb-2">${ruas.nama_ruas}</h3>
-                                <p><span class="font-bold">Panjang:</span> ${ruas.panjang} meter</p>
-                                <p><span class="font-bold">Lebar:</span> ${ruas.lebar} meter</p>
-                                <p><span class="font-bold">Eksisting:</span> ${eksisting ? eksisting.nama : '-'}</p>
-                                <p><span class="font-bold">Kondisi:</span> ${kondisi ? kondisi.nama : '-'}</p>
-                                <p><span class="font-bold">Jenis Jalan:</span> ${jenisjalan ? jenisjalan.nama : '-'}</p>
-                                <p><span class="font-bold">Keterangan:</span> ${ruas.keterangan}</p>
-                            </div>
-                        `;
-
-                        const popup = L.popup({
-                            maxWidth: 300,
-                            className: 'custom-popup'
-                        }).setContent(popupContent);
-                        polyline.bindPopup(popup);
-
-                        // Tambahkan polyline ke dalam array polylinesArray
-                        polylinesArray.push(polyline);
-
-                        // Tambahkan data ke tabel
-                        const newRow = document.createElement("tr");
-                        newRow.innerHTML = `
-                            <td class="p-2">${ruas.nama_ruas}</td>
-                            <td class="p-2 truncate" title="${ruas.paths}">${ruas.paths.slice(0, 30)}...</td>
-                            <td class="p-2">${ruas.panjang}</td>
-                            <td class="p-2">${ruas.lebar}</td>
-                            <td class="p-2">${eksisting ? eksisting.nama : '-'}</td>
-                            <td class="p-2">${kondisi ? kondisi.nama : '-'}</td>
-                            <td class="p-2">${jenisjalan ? jenisjalan.nama : '-'}</td>
-                            <td class="p-2">${ruas.keterangan}</td>
-                        `;
-                        tableBody.appendChild(newRow);
+                        let coordinates = parseCoordinates(ruas.paths);
+                        if (coordinates.length === 0) {
+                            console.warn('No valid coordinates for ruas:', ruas);
+                            return;
+                        }
+                        const line = L.polyline(coordinates, { color: 'red' }).addTo(map);
+                        polylinesArray.push(line);
                     } else {
                         console.error('Invalid ruas data:', ruas);
                     }
                 });
             }
 
-            // Atur tampilan peta agar memperlihatkan semua polyline yang ditambahkan
-            const group = new L.featureGroup(polylinesArray); // Mengumpulkan semua polyline dalam sebuah feature group
-            map.fitBounds(group.getBounds()); // Mengatur tampilan peta agar menampilkan semua polyline dalam group
-
-            document.querySelectorAll('.btn-danger').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    var form = this.closest('form');
-                    Swal.fire({
-                        title: 'Are you sure?',
-                        text: "This action cannot be undone!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Yes, delete it!'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            form.submit();
-                            Swal.fire(
-                                'Deleted!',
-                                'Your data has been deleted.',
-                                'success'
-                            );
-                        }
-                    });
-                });
-            });
-
+            if (polylinesArray.length > 0) {
+                const group = new L.featureGroup(polylinesArray);
+                map.fitBounds(group.getBounds());
+            }
         } catch (error) {
             console.error('Error fetching data:', error);
         }
-    });
 
 
-    var map = L.map('map').setView([-8.409518, 115.188919], 10);
+        async function deletePolyline(id) {
+            const confirmResult = await Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Anda tidak akan dapat mengembalikan tindakan ini!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            });
 
-    // Adding multiple basemaps
-    const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 20,
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
-
-    var Esri_World = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-    });
-
-    var Esri_Map = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC',
-        maxZoom: 16
-    });
-
-    var Stadia_Dark = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.{ext}', {
-        minZoom: 0,
-        maxZoom: 20,
-        attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        ext: 'png'
-    });
-
-    var baseLayers = {
-        "OSM Tiles": tiles,
-        "ESRI World Imagery": Esri_World,
-        "ESRI Map": Esri_Map,
-        "Stadia Dark": Stadia_Dark
-    };
-
-    // Adding layer control to map
-    L.control.layers(baseLayers).addTo(map);
-
-    var drawnItems = new L.FeatureGroup();
-    map.addLayer(drawnItems);
-
-    var drawControl = new L.Control.Draw({
-        edit: {
-            featureGroup: drawnItems
-        },
-        draw: {
-            polyline: true,
-            polygon: true,
-            circle: false,
-            rectangle: false,
-            marker: false,
-            circlemarker: false
-        }
-    });
-    map.addControl(drawControl);
-
-    map.on('draw:created', function (event) {
-        var layer = event.layer;
-        drawnItems.addLayer(layer);
-
-        var latlngs;
-        if (layer instanceof L.Polyline) {
-            latlngs = layer.getLatLngs();
-        } else if (layer instanceof L.Polygon) {
-            latlngs = layer.getLatLngs()[0]; // outer ring
-        }
-
-        var latlngString = latlngs.map(function(latlng) {
-            return `${latlng.lat}, ${latlng.lng}`;
-        }).join('\n');
-
-        document.getElementById('latlng').value = latlngString;
-
-        // Calculate the length of the polyline
-        var length = calculateLength(latlngs);
-        console.log('Length:', length);
-
-        // Display the length in a suitable HTML element (e.g., an input field or a div)
-        alert(`Panjang Polyline: ${length.toFixed(2)} meters`);
-    });
-
-    map.on('draw:edited', function (event) {
-        var layers = event.layers;
-        var latlngs = [];
-
-        layers.eachLayer(function (layer) {
-            if (layer instanceof L.Polyline) {
-                latlngs = latlngs.concat(layer.getLatLngs());
-            } else if (layer instanceof L.Polygon) {
-                latlngs = latlngs.concat(layer.getLatLngs()[0]); // outer ring
+            if (confirmResult.isConfirmed) {
+                try {
+                    const response = await axios.delete(api_main_url + "ruasjalan/" + id, { headers });
+                    if (response.status !== 200) {
+                        throw new Error('Failed to delete ruas jalan data: ' + response.statusText);
+                    }
+                    console.log('Ruas jalan deleted:', id);
+                    // Hapus baris data dari tabel
+                    document.getElementById('polylineTableBody').querySelector(`[data-id="${id}"]`).remove();
+                    Swal.fire(
+                        'Deleted!',
+                        'Data ruas jalan telah dihapus.',
+                        'success'
+                    );
+                } catch (error) {
+                    console.error('Error deleting ruas jalan data:', error);
+                    Swal.fire(
+                        'Error!',
+                        'Gagal menghapus data ruas jalan.',
+                        'error'
+                    );
+                }
             }
+        }
+
+
+        const deleteButtons = document.querySelectorAll('.btn-delete');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function (event) {
+                const polylineId = event.target.getAttribute('data-id');
+                deletePolyline(polylineId);
+            });
         });
 
-        var latlngString = latlngs.map(function(latlng) {
-            return `${latlng.lat}, ${latlng.lng}`;
-        }).join('\n');
+        const detailButtons = document.querySelectorAll('.btn-detail');
+        const popupInfo = document.getElementById('popupInfo');
+        const popupTitle = document.getElementById('popupTitle');
+        const popupContent = document.getElementById('popupContent');
+        const closePopupButton = document.getElementById('closePopup');
 
-        document.getElementById('latlng').value = latlngString;
+        detailButtons.forEach(button => {
+            button.addEventListener('click', function (event) {
+                const polylineId = event.target.getAttribute('data-id');
+                fetchPolylineDetails(polylineId);
+            });
+        });
 
-        // Calculate the length of the polyline
-        var length = calculateLength(latlngs);
-        console.log('Length:', length);
+        function fetchPolylineDetails(id) {
+            axios.get(api_main_url + "ruasjalan/" + id, { headers })
+                .then(response => {
+                    const polylineData = response.data;
+                    // Isi konten popup dengan data yang diperoleh
+                    popupTitle.innerText = polylineData.nama_ruas;
+                    popupContent.innerHTML = `
+                        <p><b>Koordinat:</b> ${polylineData.paths}</p>
+                        <p><b>Panjang:</b> ${polylineData.panjang}</p>
+                        <p><b>Lebar:</b> ${polylineData.lebar}</p>
+                        <p><b>Eksisting:</b> ${polylineData.eksisting_id}</p>
+                        <p><b>Kondisi:</b> ${polylineData.kondisi_id}</p>
+                        <p><b>Jenis Jalan:</b> ${polylineData.jenisjalan_id}</p>
+                        <p><b>Keterangan:</b> ${polylineData.keterangan}</p>
+                    `;
+                    // Tampilkan popup
+                    popupInfo.classList.remove('hidden');
+                })
+                .catch(error => {
+                    console.error('Error fetching polyline data:', error);
+                    Swal.fire(
+                        'Error!',
+                        'Gagal mendapatkan data ruas jalan.',
+                        'error'
+                    );
+                });
+        }
 
-        // Display the length in a suitable HTML element (e.g., an input field or a div)
-        alert(`Panjang Polyline: ${length.toFixed(2)} meters`);
+        // Tambahkan event listener untuk tombol close
+        closePopupButton.addEventListener('click', function() {
+            popupInfo.classList.add('hidden');
+        });
+
     });
-
-    document.getElementById('form').addEventListener('reset', function() {
-        // Menghapus semua layer dari drawnItems ketika tombol reset ditekan
-        drawnItems.clearLayers();
-        // Reset koordinat
-        document.getElementById('latlng').value = '';
-    });
-
 </script>
 @endpush
