@@ -81,6 +81,7 @@
                             <label class="label" for="nama_ruas">
                                 <span class="label-text"><b>Nama Ruas</b></span>
                             </label>
+                            {{-- <input type="text" class="input input-bordered w-full border-gray-300 rounded-lg shadow-sm" id="nama_ruas" name="nama_ruas" value="{{$data_ruas_jalan->nama_ruas['nama_ruas'] }}" required /> --}}
                             
                             <input type="text" class="input input-bordered w-full" id="nama_ruas" name="nama_ruas" value="{{ old('namaRuas', $data_ruas_jalan->namaRuas ?? '') }}" required />
                         </div>
@@ -188,7 +189,7 @@
                             </label>
                             <select class="select select-bordered w-full" id="eksisting" name="eksisting" required>
                                 <option value="">Pilih Material</option>
-                                @foreach($eksistings as $eksisting)
+                                @foreach($eksistings['eksisting'] as $eksisting)
                                     <option value="{{ $eksisting['id'] }}" {{ $data_ruas_jalan->ruasjalan->eksisting_id == $eksisting['id'] ? 'selected' : '' }}>
                                         {{ $eksisting['eksisting'] }}
                                     </option>

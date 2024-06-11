@@ -10,6 +10,7 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\HandlerStack;
 
+
 class PolylineController extends Controller
 {
     public function index()
@@ -88,6 +89,8 @@ class PolylineController extends Controller
         }
     }
 
+    
+    
     public function edit($id)
     {
         $token = session('token');
@@ -98,32 +101,35 @@ class PolylineController extends Controller
                 'Accept' => 'application/json',
             ],
         ]);
-    
+
         if ($response->getStatusCode() == 200) {
-            $data_ruas_jalan = json_decode($response->getBody(), true);
-            if (isset($data_ruas_jalan['ruasjalan'])) {
-                $ruasjalan = $data_ruas_jalan['ruasjalan'];
-                $desa = $this->getDesa($token, $ruasjalan['desa_id']);
-                $kecamatan = $desa ? $this->getKecamatan($token, $desa['kecamatan_id']) : null;
-                $kabupaten = $kecamatan ? $this->getKabupaten($token, $kecamatan['kabupaten_id']) : null;
-                $provinsi = $kabupaten ? $this->getProvinsi($token, $kabupaten['provinsi_id']) : null;
+            $data_ruas_jalan = json_decode($response->getBody());
 
-                $provinces = $this->fetchProvinces($token);
-                $kabupatens = $provinsi ? $this->fetchKabupatens($token, $provinsi['id']) : [];
-                $kecamatans = $kabupaten ? $this->fetchKecamatans($token, $kabupaten['id']) : [];
-                $desas = $kecamatan ? $this->fetchDesas($token, $kecamatan['id']) : [];
-                $eksistings = $this->fetchEksistings($token);
-                $kondisis = $this->fetchKondisis($token);
-                $jenis_jalans = $this->fetchJenisJalans($token);
-
-                return view('polyline.edit', compact('ruasjalan', 'provinces', 'kabupatens', 'kecamatans', 'desas', 'eksistings', 'kondisis', 'jenis_jalans', 'desa', 'kecamatan', 'kabupaten', 'provinsi'));
-            } else {
-                return redirect()->back()->with('error', 'Invalid ruasjalan data format.');
+            if (!isset($data_ruas_jalan->ruasjalan)) {
+                Log::warning('Invalid data format:', (array) $data_ruas_jalan);
+                return redirect()->back()->with('error', 'Invalid data format from API');
             }
+
+            // Fetch additional data
+            $desa = $this->getDesa($token, $data_ruas_jalan->ruasjalan->desa_id);
+            $kecamatan = $desa ? $this->getKecamatan($token, $desa['kecamatan_id']) : null;
+            $kabupaten = $kecamatan ? $this->getKabupaten($token, $kecamatan['kabupaten_id']) : null;
+            $provinsi = $kabupaten ? $this->getProvinsi($token, $kabupaten['provinsi_id']) : null;
+
+            $provinces = $this->fetchProvinces($token);
+            $kabupatens = $provinsi ? $this->fetchKabupatens($token, $provinsi['id']) : [];
+            $kecamatans = $kabupaten ? $this->fetchKecamatans($token, $kabupaten['id']) : [];
+            $desas = $kecamatan ? $this->fetchDesas($token, $kecamatan['id']) : [];
+            $eksistings = $this->fetchEksistings($token);
+            $kondisis = $this->fetchKondisis($token);
+            $jenis_jalans = $this->fetchJenisJalans($token);
+
+            return view('polyline.edit', compact('data_ruas_jalan', 'provinces', 'kabupatens', 'kecamatans', 'desas', 'eksistings', 'kondisis', 'jenis_jalans', 'desa', 'kecamatan', 'kabupaten', 'provinsi'));
         } else {
             return redirect()->back()->with('error', 'Failed to fetch data from API');
         }
     }
+
     
     private function getDesa($token, $desaId)
     {
@@ -137,8 +143,8 @@ class PolylineController extends Controller
     
         if ($response->getStatusCode() == 200) {
             $data = json_decode($response->getBody(), true);
-            if (isset($data['desa'])) {
-                return $data['desa']; // Return the desa data
+            if (isset($data['desa']) && is_array($data['desa'])) {
+                return $data['desa']; // Mengasumsikan hanya ada satu desa yang dikembalikan
             }
         }
     
@@ -157,8 +163,8 @@ class PolylineController extends Controller
     
         if ($response->getStatusCode() == 200) {
             $data = json_decode($response->getBody(), true);
-            if (isset($data['kecamatan'])) {
-                return $data['kecamatan']; // Return the kecamatan data
+            if (isset($data['kecamatan']) && is_array($data['kecamatan'])) {
+                return $data['kecamatan']; // Mengasumsikan hanya ada satu kecamatan yang dikembalikan
             }
         }
     
@@ -177,8 +183,8 @@ class PolylineController extends Controller
     
         if ($response->getStatusCode() == 200) {
             $data = json_decode($response->getBody(), true);
-            if (isset($data['kabupaten'])) {
-                return $data['kabupaten']; // Return the kabupaten data
+            if (isset($data['kabupaten']) && is_array($data['kabupaten'])) {
+                return $data['kabupaten']; // Mengasumsikan hanya ada satu kabupaten yang dikembalikan
             }
         }
     
@@ -197,17 +203,17 @@ class PolylineController extends Controller
     
         if ($response->getStatusCode() == 200) {
             $data = json_decode($response->getBody(), true);
-            if (isset($data['provinsi'])) {
-                foreach ($data['provinsi'] as $provinsi) {
-                    if ($provinsi['id'] == $provinsiId) {
-                        return $provinsi;
-                    }
-                }
+            if (isset($data['provinsi']) && is_array($data['provinsi'])) {
+                $provinsi = array_filter($data['provinsi'], function ($p) use ($provinsiId) {
+                    return $p['id'] == $provinsiId;
+                });
+                return array_values($provinsi) ?? null;
             }
         }
     
         return null;
     }
+
 
     private function fetchProvinces($token)
     {
@@ -218,81 +224,70 @@ class PolylineController extends Controller
                 'Accept' => 'application/json',
             ],
         ]);
-
+    
         if ($response->getStatusCode() == 200) {
             $data = json_decode($response->getBody(), true);
-            if (isset($data['provinsi'])) {
+            if (isset($data['provinsi']) && is_array($data['provinsi'])) {
                 return $data['provinsi'];
+            } else {
+                Log::warning('Invalid provinces data format:', (array)$data);
+                return [];
             }
+        } else {
+            Log::warning('Failed to fetch provinces data:', ['status_code' => $response->getStatusCode()]);
+            return [];
         }
-
-        return [];
     }
 
     private function fetchKabupatens($token, $provinsiId)
     {
         $client = new Client();
-        $response = $client->request('GET', 'https://gisapis.manpits.xyz/api/kabupaten', [
+        $response = $client->request('GET', 'https://gisapis.manpits.xyz/api/kabupaten/${provinceId}', [
             'headers' => [
                 'Authorization' => 'Bearer ' . $token,
                 'Accept' => 'application/json',
             ],
         ]);
-
+    
         if ($response->getStatusCode() == 200) {
-            $data = json_decode($response->getBody(), true);
-            if (isset($data['kabupaten'])) {
-                return array_filter($data['kabupaten'], function($kabupaten) use ($provinsiId) {
-                    return $kabupaten['provinsi_id'] == $provinsiId;
-                });
-            }
+            return json_decode($response->getBody(), true);
+        } else {
+            return [];
         }
-
-        return [];
     }
 
     private function fetchKecamatans($token, $kabupatenId)
     {
         $client = new Client();
-        $response = $client->request('GET', 'https://gisapis.manpits.xyz/api/kecamatan', [
+        $response = $client->request('GET', 'https://gisapis.manpits.xyz/api/kecamatan/${kabupatenId}', [
             'headers' => [
                 'Authorization' => 'Bearer ' . $token,
                 'Accept' => 'application/json',
             ],
         ]);
-
+    
         if ($response->getStatusCode() == 200) {
-            $data = json_decode($response->getBody(), true);
-            if (isset($data['kecamatan'])) {
-                return array_filter($data['kecamatan'], function($kecamatan) use ($kabupatenId) {
-                    return $kecamatan['kabupaten_id'] == $kabupatenId;
-                });
-            }
+            return json_decode($response->getBody(), true);
+        } else {
+            return [];
         }
-
-        return [];
     }
 
     private function fetchDesas($token, $kecamatanId)
     {
         $client = new Client();
-        $response = $client->request('GET', 'https://gisapis.manpits.xyz/api/desa', [
+        $response = $client->request('GET', 'https://gisapis.manpits.xyz/api/desa/${kecamatanId}' , [
             'headers' => [
                 'Authorization' => 'Bearer ' . $token,
                 'Accept' => 'application/json',
             ],
         ]);
-
+    
         if ($response->getStatusCode() == 200) {
-            $data = json_decode($response->getBody(), true);
-            if (isset($data['desa'])) {
-                return array_filter($data['desa'], function($desa) use ($kecamatanId) {
-                    return $desa['kecamatan_id'] == $kecamatanId;
-                });
-            }
+            return json_decode($response->getBody(), true);
+        } else {
+            return [];
         }
-
-        return [];
     }
 
     private function fetchEksistings($token)
@@ -304,15 +299,12 @@ class PolylineController extends Controller
                 'Accept' => 'application/json',
             ],
         ]);
-
+    
         if ($response->getStatusCode() == 200) {
-            $data = json_decode($response->getBody(), true);
-            if (isset($data['eksisting'])) {
-                return $data['eksisting'];
-            }
+            return json_decode($response->getBody(), true);
+        } else {
+            return [];
         }
-
-        return [];
     }
 
     private function fetchKondisis($token)
@@ -324,15 +316,12 @@ class PolylineController extends Controller
                 'Accept' => 'application/json',
             ],
         ]);
-
+    
         if ($response->getStatusCode() == 200) {
-            $data = json_decode($response->getBody(), true);
-            if (isset($data['kondisi'])) {
-                return $data['kondisi'];
-            }
+            return json_decode($response->getBody(), true);
+        } else {
+            return [];
         }
-
-        return [];
     }
 
     private function fetchJenisJalans($token)
@@ -344,81 +333,111 @@ class PolylineController extends Controller
                 'Accept' => 'application/json',
             ],
         ]);
-
+    
         if ($response->getStatusCode() == 200) {
-            $data = json_decode($response->getBody(), true);
-            if (isset($data['jenisjalan'])) {
-                return $data['jenisjalan'];
-            }
+            return json_decode($response->getBody(), true);
+        } else {
+            return [];
         }
-
-        return [];
     }
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'coordinates' => 'required|array',
-            'coordinates.*.lat' => 'required|numeric',
-            'coordinates.*.lng' => 'required|numeric',
-        ]);
-
-        $coordinates = $request->coordinates;
-        foreach ($coordinates as $coordinate) {
-            if (!isset($coordinate['lat']) || !isset($coordinate['lng'])) {
-                return redirect()->back()->with('error', 'Format koordinat tidak valid.');
-            }
-        }
-
-        $coordinates = array_map(function($coord) {
-            return ['lat' => floatval($coord['lat']), 'lng' => floatval($coord['lng'])];
-        }, $coordinates);
-
-        $encodedCoordinates = $this->encodePolyline($coordinates);
+        $token = session('token');
 
         $client = new Client();
         $response = $client->request('PUT', 'https://gisapis.manpits.xyz/api/ruasjalan/' . $id, [
             'headers' => [
-                'Authorization' => 'Bearer ' . session('token'),
+                'Authorization' => 'Bearer ' . $token,
                 'Accept' => 'application/json',
             ],
             'json' => [
-                'nama_ruas' => $request->name,
-                'paths' => $encodedCoordinates,
+                'kodeRuas' => $request->kodeRuas,
+                'namaRuas' => $request->namaRuas,
+                'keterangan' => $request->keterangan,
+                'lebar' => $request->lebar,
+                'desaId' => $request->desaId,
+                'jenisjalanId' => $request->jenisjalanId,
+                'eksistingId' => $request->eksistingId,
+                'kondisiId' => $request->kondisiId,
             ],
         ]);
-
+    
         if ($response->getStatusCode() == 200) {
-            return redirect()->route('polyline.index')->with('success', 'Polyline updated successfully.');
+            return redirect()->route('polyline.index')->with('success', 'Data polyline berhasil diperbarui.');
         } else {
-            return redirect()->back()->with('error', 'Failed to update polyline.');
+            return redirect()->back()->with('error', 'Gagal memperbarui data polyline.');
+        }
+    }
+
+    private function getDataRegion($token)
+    {
+        $client = new Client();
+        $response = $client->request('GET', 'https://gisapis.manpits.xyz/api/mregion', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token,
+                'Accept' => 'application/json',
+            ],
+        ]);
+    
+        if ($response->getStatusCode() == 200) {
+            return json_decode($response->getBody(), true);
+        } else {
+            return [];
         }
     }
 
     public function destroy($id)
     {
+        $token = session('token');
         $client = new Client();
         $response = $client->request('DELETE', 'https://gisapis.manpits.xyz/api/ruasjalan/' . $id, [
             'headers' => [
-                'Authorization' => 'Bearer ' . session('token'),
+                'Authorization' => 'Bearer ' . $token,
                 'Accept' => 'application/json',
             ],
         ]);
-
-        if ($response->getStatusCode() == 204) {
-            return redirect()->route('polyline.index')->with('success', 'Polyline deleted successfully.');
+    
+        if ($response->getStatusCode() == 200) {
+            return redirect()->route('polyline.index')->with('success', 'Data polyline berhasil dihapus.');
         } else {
-            return redirect()->back()->with('error', 'Failed to delete polyline.');
+            return redirect()->back()->with('error', 'Gagal menghapus data polyline.');
         }
     }
 
     private function encodePolyline($coordinates)
     {
-        $encodedCoordinates = Polyline::encode(array_map(function ($coord) {
-            return [$coord['lat'], $coord['lng']];
-        }, $coordinates));
-
-        return $encodedCoordinates;
+        $points = array_map(function($coord) {
+            return [floatval($coord['lat']), floatval($coord['lng'])];
+        }, $coordinates);
+    
+        return Polyline::encode($points);
+    }
+    
+    private function decodePolyline($encodedString)
+    {
+        try {
+            $points = Polyline::decode($encodedString);
+            
+            if (!is_array($points) || empty($points)) {
+                Log::error('Failed to decode polyline or invalid format:', ['encodedString' => $encodedString, 'decodedPoints' => $points]);
+                return [];
+            }
+            
+            $latlngs = array_map(function($point) {
+                if (!is_array($point) || count($point) < 2) {
+                    Log::warning('Invalid point format:', ['point' => $point]);
+                    return null;
+                }
+                return ['lat' => $point[0], 'lng' => $point[1]];
+            }, $points);
+            
+            $latlngs = array_filter($latlngs);
+            
+            return $latlngs;
+        } catch (\Exception $e) {
+            Log::error('Error decoding polyline:', ['encodedString' => $encodedString, 'error' => $e->getMessage()]);
+            return [];
+        }
     }
 }
