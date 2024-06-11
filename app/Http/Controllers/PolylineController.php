@@ -103,15 +103,17 @@ class PolylineController extends Controller
         ]);
 
         if ($response->getStatusCode() == 200) {
-            $data_ruas_jalan = json_decode($response->getBody());
+            $data_ruas_jalan = json_decode($response->getBody(), true);
 
-            if (!isset($data_ruas_jalan->ruasjalan)) {
+            if (!isset($data_ruas_jalan['ruasjalan'])) {
                 Log::warning('Invalid data format:', (array) $data_ruas_jalan);
                 return redirect()->back()->with('error', 'Invalid data format from API');
             }
 
+            $ruasJalan = $data_ruas_jalan['ruasjalan'];
+
             // Fetch additional data
-            $desa = $this->getDesa($token, $data_ruas_jalan->ruasjalan->desa_id);
+            $desa = $this->getDesa($token, $ruasJalan['desa_id']);
             $kecamatan = $desa ? $this->getKecamatan($token, $desa['kecamatan_id']) : null;
             $kabupaten = $kecamatan ? $this->getKabupaten($token, $kecamatan['kabupaten_id']) : null;
             $provinsi = $kabupaten ? $this->getProvinsi($token, $kabupaten['provinsi_id']) : null;
@@ -124,11 +126,12 @@ class PolylineController extends Controller
             $kondisis = $this->fetchKondisis($token);
             $jenis_jalans = $this->fetchJenisJalans($token);
 
-            return view('polyline.edit', compact('data_ruas_jalan', 'provinces', 'kabupatens', 'kecamatans', 'desas', 'eksistings', 'kondisis', 'jenis_jalans', 'desa', 'kecamatan', 'kabupaten', 'provinsi'));
+            return view('polyline.edit', compact('ruasJalan', 'provinces', 'kabupatens', 'kecamatans', 'desas', 'eksistings', 'kondisis', 'jenis_jalans', 'desa', 'kecamatan', 'kabupaten', 'provinsi'));
         } else {
             return redirect()->back()->with('error', 'Failed to fetch data from API');
         }
     }
+        
 
     
     private function getDesa($token, $desaId)

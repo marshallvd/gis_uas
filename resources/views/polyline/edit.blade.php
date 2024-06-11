@@ -81,31 +81,32 @@
                             <label class="label" for="nama_ruas">
                                 <span class="label-text"><b>Nama Ruas</b></span>
                             </label>
-                            {{-- <input type="text" class="input input-bordered w-full border-gray-300 rounded-lg shadow-sm" id="nama_ruas" name="nama_ruas" value="{{$data_ruas_jalan->nama_ruas['nama_ruas'] }}" required /> --}}
-                            
-                            <input type="text" class="input input-bordered w-full" id="nama_ruas" name="nama_ruas" value="{{ old('namaRuas', $data_ruas_jalan->namaRuas ?? '') }}" required />
+                            <input type="text" class="input input-bordered w-full" id="nama_ruas" name="nama_ruas" value="{{ $ruasJalan['nama_ruas'] }}" required />
+
+
+
                         </div>
                         <!-- Lebar Ruas -->
                         <div class="form-control">
                             <label class="label" for="lebar">
                                 <span class="label-text"><b>Lebar Ruas</b></span>
                             </label>
-                            <input type="text" class="input input-bordered w-full" id="lebar" name="lebar" value="{{ $data_ruas_jalan->lebar ?? '' }}" required />
-                            
+                            <input type="text" class="input input-bordered w-full" id="lebar" name="lebar" value="{{ $ruasJalan['lebar'] }}" required />
+
                         </div>
                         <!-- Kode Ruas -->
                         <div class="form-control">
                             <label class="label" for="kode_ruas">
                                 <span class="label-text"><b>Kode Ruas</b></span>
                             </label>
-                            <input type="text" class="input input-bordered w-full" id="kode_ruas" name="kode_ruas" value="{{ $data_ruas_jalan->kode_ruas ?? '' }}" required />
+                            <input type="text" class="input input-bordered w-full" id="kode_ruas" name="kode_ruas" value="{{ $ruasJalan['kode_ruas'] }}" required />
                         </div>
                         <!-- Keterangan -->
                         <div class="form-control">
                             <label class="label" for="keterangan">
                                 <span class="label-text"><b>Keterangan</b></span>
                             </label>
-                            <input type="text" class="input input-bordered w-full" id="keterangan" name="keterangan" value="{{ $data_ruas_jalan->keterangan ?? '' }}" required />
+                            <input type="text" class="input input-bordered w-full" id="keterangan" name="keterangan" value="{{ $ruasJalan['keterangan'] }}" required />
                         </div>
                     </div>
 
@@ -132,7 +133,7 @@
                         {{-- @php
                             dd($kabupatens);
                         @endphp --}}
-                        <div cla
+                        
                         <div class="form-control">
                             <label class="label" for="kabupaten">
                                 <span class="label-text"><b>Pilih Kabupaten</b></span>
@@ -148,7 +149,7 @@
                         {{-- @php
                             dd($kecamatans);
                         @endphp --}}
-                        <div cla
+                        
                         <div class="form-control">
                             <label class="label" for="kecamatan">
                                 <span class="label-text"><b>Pilih Kecamatan</b></span>
@@ -190,17 +191,13 @@
                             <select class="select select-bordered w-full" id="eksisting" name="eksisting" required>
                                 <option value="">Pilih Material</option>
                                 @foreach($eksistings['eksisting'] as $eksisting)
-                                    <option value="{{ $eksisting['id'] }}" {{ $data_ruas_jalan->ruasjalan->eksisting_id == $eksisting['id'] ? 'selected' : '' }}>
-                                        {{ $eksisting['eksisting'] }}
-                                    </option>
+                                    <option value="{{ $eksisting['id'] }}" {{ $ruasJalan['eksisting_id'] == $eksisting['id'] ? 'selected' : '' }}>{{ $eksisting['eksisting'] }}</option>
                                 @endforeach
-
-
                             </select>
                         </div>
                         <!-- Dropdown Kondisi -->
                         {{-- @php
-                            dd($data_ruas_jalan);
+                            dd($ruasJalan);
                         @endphp --}}
                         <div class="form-control">
                             <label class="label" for="kondisi">
@@ -209,20 +206,33 @@
                             <select class="select select-bordered w-full" id="kondisi" name="kondisi" required>
                                 <option value="">Pilih Kondisi</option>
                                 @foreach($kondisis['eksisting'] as $kondisi)
-                                    <option value="{{ $kondisi['id'] }}" {{ $data_ruas_jalan->ruasjalan->kondisi_id == $kondisi['id'] ? 'selected' : '' }}>
-                                        {{ $kondisi['kondisi'] }}
-                                    </option>
+                                    <option value="{{ $kondisi['id'] }}" {{ $ruasJalan['kondisi_id'] == $kondisi['id'] ? 'selected' : '' }}>{{ $kondisi['kondisi'] }}</option>
                                 @endforeach
                             </select>
                         </div>
                         
+                        <!-- Dropdown Jenis Jalan -->
+                        {{-- @php
+                            dd($jenis_jalans);
+                        @endphp --}}
                         <!-- Dropdown Jenis Jalan -->
                         <div class="form-control">
                             <label class="label" for="jenis_jalan">
                                 <span class="label-text"><b>Jenis Jalan</b></span>
                             </label>
                             <select class="select select-bordered w-full" id="jenis_jalan" name="jenis_jalan" required>
-                                <option value="{{ $kondisi['id'] }}" {{ isset($data_ruas_jalan->kondisi_id) && $data_ruas_jalan->kondisi_id == $kondisi['id'] ? 'selected' : '' }}>{{ $kondisi['kondisi'] }}</option>
+                                <option value="">Pilih Jenis Jalan</option>
+
+                                @if(isset($jenis_jalans['eksisting']))
+                                @foreach($jenis_jalans['eksisting'] as $jenis_jalan)
+                                    <option value="{{ $jenis_jalan['id'] }}" {{ isset($ruasJalan['jenisjalan_id']) && $ruasJalan['jenisjalan_id'] == $jenis_jalan['id'] ? 'selected' : '' }}>{{ $jenis_jalan['jenisjalan'] }}</option>
+                                @endforeach
+                                @endif
+                                {{-- @if(isset($jenis_jalans['jenisjalan']))
+                                    @foreach($jenis_jalans['jenisjalan'] as $jenis_jalan)
+                                        <option value="{{ $jenis_jalan['id'] }}" {{ isset($ruasJalan['jenisjalan_id']) && $ruasJalan['jenisjalan_id'] == $jenis_jalan['id'] ? 'selected' : '' }}>{{ $jenis_jalan['jenisjalan'] }}</option>
+                                    @endforeach
+                                @endif --}}
                             </select>
                         </div>
 
@@ -231,7 +241,8 @@
                             <label class="label" for="latlng">
                                 <span class="label-text"><b>Latlng</b></span>
                             </label>
-                            <input type="text" class="input input-bordered w-full" id="latlng" name="latlng" value="{{ $data_ruas_jalan->paths ?? '' }}" required />
+                            <input type="text" class="input input-bordered w-full" id="latlng" name="latlng" value="{{ $ruasJalan['paths'] }}" required />
+
                         </div>
                     </div>
                 </div>
@@ -249,6 +260,7 @@
 @endsection
 
 @push('javascript')
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
 integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
 crossorigin=""></script>
@@ -281,10 +293,10 @@ crossorigin=""></script>
         L.control.layers(baseLayers).addTo(map);
 
         // Parse koordinat polyline dan tampilkan di peta
-        const polylineCoords = {!! json_encode($data_ruas_jalan->ruasjalan->paths) !!}.split(' ').map(coord => {
-            const [lat, lng] = coord.split(',').map(parseFloat);
-            return [lat, lng];
-        });
+        const polylineCoords = {!! isset($data_ruas_jalan->ruasjalan->paths) ? json_encode($data_ruas_jalan->ruasjalan->paths) : '[]' !!}.split(' ').map(coord => {
+        const [lat, lng] = coord.split(',').map(parseFloat);
+        return [lat, lng];
+    });
 
 
         const polyline = L.polyline(polylineCoords, { color: 'red' }).addTo(map);
@@ -387,57 +399,55 @@ crossorigin=""></script>
                 });
             }
         });
+        
+         // Fungsi untuk menangani pengiriman formulir
+        document.getElementById('form').addEventListener('submit', function(event) {
+            event.preventDefault();
 
-    });
+            const formData = new FormData(this);
+            const token = document.querySelector('meta[name="api-token"]').getAttribute('content');
 
-    function calculateLength(latlngs) {
+            // Mendapatkan koordinat dari polyline yang digambar
+            const latlngs = drawnItems.getLayers()[0].getLatLngs();
+            const length = calculateLength(latlngs);
+            formData.set('panjang', length.toFixed(2)); // Tambahkan panjang ke formData
+
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': token,
+                    'Authorization': 'Bearer ' + token,
+                },
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert('Data berhasil diperbarui!');
+                    window.location.href = '{{ route("polyline.index") }}';
+                } else {
+                    alert('Gagal memperbarui data: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat memperbarui data.');
+            });
+        });
+        
+        function calculateLength(latlngs) {
         let length = 0;
         for (let i = 0; i < latlngs.length - 1; i++) {
             length += latlngs[i].distanceTo(latlngs[i + 1]);
         }
         return length;
-    }
-
-    // Fungsi untuk menangani pengiriman formulir
-    document.getElementById('form').addEventListener('submit', function(event) {
-        event.preventDefault();
-
-        const formData = new FormData(this);
-        const token = document.querySelector('meta[name="api-token"]').getAttribute('content');
-
-        // Mendapatkan koordinat dari polyline yang digambar
-        const latlngs = drawnItems.getLayers()[0].getLatLngs();
-        const length = calculateLength(latlngs);
-        formData.set('panjang', length.toFixed(2)); // Tambahkan panjang ke formData
-
-        fetch(this.action, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': token,
-                'Authorization': 'Bearer ' + token,
-            },
-            body: formData
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                alert('Data berhasil diperbarui!');
-                window.location.href = '{{ route("polyline.index") }}';
-            } else {
-                alert('Gagal memperbarui data: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat memperbarui data.');
-        });
+        }
     });
-
 </script>
-@endpush
 
+@endpush

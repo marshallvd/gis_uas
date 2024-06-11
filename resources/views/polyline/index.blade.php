@@ -386,10 +386,7 @@ crossorigin=""></script>
                 });
         }
 
-        // Tambahkan event listener untuk tombol close
-        closePopupButton.addEventListener('click', function() {
-            popupInfo.classList.add('hidden');
-        });
+    
 
     });
 </script>
