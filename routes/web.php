@@ -48,8 +48,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [AuthController::class, 'profile'])->name('profile');
 });
 
-Route::get('/regions', [ApiController::class, 'getAllRegions']);
-Route::get('/province/{id}', [ApiController::class, 'getProvinceById']);
-Route::get('/kabupaten/province/{id}', [ApiController::class, 'getKabupatenByProvinceId']);
-Route::get('/kecamatan/kabupaten/{id}', [ApiController::class, 'getKecamatanByKabupatenId']);
-Route::get('/desa/kecamatan/{id}', [ApiController::class, 'getDesaByKecamatanId']);
+// Route::get('/regions', [ApiController::class, 'getAllRegions']);
+// Route::get('/province/{id}', [ApiController::class, 'getProvinceById']);
+// Route::get('/kabupaten/province/{id}', [ApiController::class, 'getKabupatenByProvinceId']);
+// Route::get('/kecamatan/kabupaten/{id}', [ApiController::class, 'getKecamatanByKabupatenId']);
+// Route::get('/desa/kecamatan/{id}', [ApiController::class, 'getDesaByKecamatanId']);

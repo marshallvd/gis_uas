@@ -67,7 +67,7 @@
 
     <div class="custom-card">
         <div class="custom-card-body">
-            <form action="{{ route('polyline.update', $data_ruas_jalan->id ?? '') }}" method="POST" enctype="multipart/form-data" id="form" name="form">
+            <form action="{{ route('polyline.update', $ruasJalan['id']) }}" method="POST" enctype="multipart/form-data" id="form" name="form">
                 @csrf
                 @method('PUT')
                 <div class="form-section">
@@ -122,8 +122,8 @@
                             </label>
                             <select class="select select-bordered w-full" id="province" name="province" required>
                                 <option value="">Pilih Provinsi</option>
-                                @foreach($provinces as $province)
-                                    <option value="{{ $province['id'] }}">{{ $province['provinsi'] }}</option>
+                                @foreach($regionData['provinsi'] as $provinsi)
+                                    <option value="{{ $provinsi['id'] }}" {{ $ruasJalan['province_id'] == $provinsi['id'] ? 'selected' : '' }}>{{ $provinsi['provinsi'] }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -140,8 +140,8 @@
                             </label>
                             <select class="select select-bordered w-full" id="kabupaten" name="kabupaten" required>
                                 <option value="">Pilih Kabupaten</option>
-                                @foreach($kabupatens as $kabupaten)
-                                    <option value="{{ $kabupaten['id'] }}">{{ $kabupaten['kabupaten'] }}</option>
+                                @foreach($regionData['kabupaten'] as $kabupaten)
+                                    <option value="{{ $kabupaten['id'] }}" {{ $ruasJalan['kabupaten_id'] == $kabupaten['id'] ? 'selected' : '' }}>{{ $kabupaten['kabupaten'] }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -156,8 +156,8 @@
                             </label>
                             <select class="select select-bordered w-full" id="kecamatan" name="kecamatan" required>
                                 <option value="">Pilih Kecamatan</option>
-                                @foreach($kecamatans as $kecamatan)
-                                    <option value="{{ $kecamatan['id'] }}">{{ $kecamatan['kecamatan'] }}</option>
+                                @foreach($regionData['kecamatan'] as $kecamatan)
+                                    <option value="{{ $kecamatan['id'] }}" {{ $ruasJalan['kecamatan_id'] == $kecamatan['id'] ? 'selected' : '' }}>{{ $kecamatan['kecamatan'] }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -171,8 +171,8 @@
                             </label>
                             <select class="select select-bordered w-full" id="desa" name="desa" required>
                                 <option value="">Pilih Desa</option>
-                                @foreach($desas as $desa)
-                                    <option value="{{ $desa['id'] }}">{{ $desa['desa'] }}</option>
+                                @foreach($regionData['desa'] as $desa)
+                                    <option value="{{ $desa['id'] }}" {{ $ruasJalan['desa_id'] == $desa['id'] ? 'selected' : '' }}>{{ $desa['desa'] }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -190,9 +190,12 @@
                             </label>
                             <select class="select select-bordered w-full" id="eksisting" name="eksisting" required>
                                 <option value="">Pilih Material</option>
-                                @foreach($eksistings['eksisting'] as $eksisting)
+                                @foreach($eksistingData as $eksisting)
                                     <option value="{{ $eksisting['id'] }}" {{ $ruasJalan['eksisting_id'] == $eksisting['id'] ? 'selected' : '' }}>{{ $eksisting['eksisting'] }}</option>
                                 @endforeach
+                                {{-- @foreach($eksistings['eksisting'] as $eksisting)
+                                    <option value="{{ $eksisting['id'] }}" {{ $ruasJalan['eksisting_id'] == $eksisting['id'] ? 'selected' : '' }}>{{ $eksisting['eksisting'] }}</option>
+                                @endforeach --}}
                             </select>
                         </div>
                         <!-- Dropdown Kondisi -->
@@ -205,9 +208,12 @@
                             </label>
                             <select class="select select-bordered w-full" id="kondisi" name="kondisi" required>
                                 <option value="">Pilih Kondisi</option>
-                                @foreach($kondisis['eksisting'] as $kondisi)
+                                @foreach($kondisiData as $kondisi)
                                     <option value="{{ $kondisi['id'] }}" {{ $ruasJalan['kondisi_id'] == $kondisi['id'] ? 'selected' : '' }}>{{ $kondisi['kondisi'] }}</option>
                                 @endforeach
+                                {{-- @foreach($kondisis['eksisting'] as $kondisi)
+                                    <option value="{{ $kondisi['id'] }}" {{ $ruasJalan['kondisi_id'] == $kondisi['id'] ? 'selected' : '' }}>{{ $kondisi['kondisi'] }}</option>
+                                @endforeach --}}
                             </select>
                         </div>
                         
@@ -222,17 +228,15 @@
                             </label>
                             <select class="select select-bordered w-full" id="jenis_jalan" name="jenis_jalan" required>
                                 <option value="">Pilih Jenis Jalan</option>
-
-                                @if(isset($jenis_jalans['eksisting']))
-                                @foreach($jenis_jalans['eksisting'] as $jenis_jalan)
-                                    <option value="{{ $jenis_jalan['id'] }}" {{ isset($ruasJalan['jenisjalan_id']) && $ruasJalan['jenisjalan_id'] == $jenis_jalan['id'] ? 'selected' : '' }}>{{ $jenis_jalan['jenisjalan'] }}</option>
+                                @foreach($jenisjalanData as $jenisjalan)
+                                    <option value="{{ $jenisjalan['id'] }}" {{ $ruasJalan['jenisjalan_id'] == $jenisjalan['id'] ? 'selected' : '' }}>{{ $jenisjalan['jenisjalan'] }}</option>
                                 @endforeach
-                                @endif
-                                {{-- @if(isset($jenis_jalans['jenisjalan']))
-                                    @foreach($jenis_jalans['jenisjalan'] as $jenis_jalan)
+                                {{-- @if(isset($jenis_jalans['eksisting']))
+                                    @foreach($jenis_jalans['eksisting'] as $jenis_jalan)
                                         <option value="{{ $jenis_jalan['id'] }}" {{ isset($ruasJalan['jenisjalan_id']) && $ruasJalan['jenisjalan_id'] == $jenis_jalan['id'] ? 'selected' : '' }}>{{ $jenis_jalan['jenisjalan'] }}</option>
-                                    @endforeach
+                                @endforeach
                                 @endif --}}
+                                
                             </select>
                         </div>
 
@@ -268,186 +272,179 @@ crossorigin=""></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-geometryutil@0.0.2/dist/leaflet.geometryutil.min.js"></script>
 
+<script>
+    var polylineData = {!! json_encode($ruasJalan['paths']) !!};
+</script>
 
 <script>
+    // Initial map setup
+    var map = L.map('map').setView([-8.409518, 115.188919], 10);
+
+// Adding multiple basemaps
+const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 20,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(map);
+
+var Esri_World = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+});
+
+var Esri_Map = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC',
+    maxZoom: 16
+});
+
+var Stadia_Dark = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.{ext}', {
+    minZoom: 0,
+    maxZoom: 20,
+    attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    ext: 'png'
+});
+
+var baseLayers = {
+    "OSM Tiles": tiles,
+    "ESRI World Imagery": Esri_World,
+    "ESRI Map": Esri_Map,
+    "Stadia Dark": Stadia_Dark
+};
+
+// Adding layer control to map
+L.control.layers(baseLayers).addTo(map);
+
+    // FeatureGroup is to store editable layers
+    var drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+
+    var drawControl = new L.Control.Draw({
+        edit: {
+            featureGroup: drawnItems
+        },
+        draw: {
+            polyline: true,
+            polygon: false,
+            circle: false,
+            rectangle: false,
+            marker: false,
+            circlemarker: false
+        }
+    });
+    map.addControl(drawControl);
+
+    function calculateLength(latlngs) {
+        var totalLength = 0;
+
+        for (var i = 1; i < latlngs.length; i++) {
+            totalLength += latlngs[i - 1].distanceTo(latlngs[i]);
+        }
+
+        return totalLength;
+    }
+
+    function updateLatLngInput(layer) {
+        var latlngs = layer.getLatLngs();
+        var latlngString = latlngs.map(function(latlng) {
+            return `${latlng.lat},${latlng.lng}`;
+        }).join(' ');
+
+        document.getElementById('latlng').value = latlngString;
+
+        var length = calculateLength(latlngs);
+        console.log('Length:', length);
+        alert(`Panjang Polyline: ${length.toFixed(2)} meters`);
+    }
+
+    map.on(L.Draw.Event.CREATED, function (event) {
+        var layer = event.layer;
+        updateLatLngInput(layer);
+        drawnItems.addLayer(layer);
+    });
+
+    map.on(L.Draw.Event.EDITED, function (event) {
+        var layers = event.layers;
+        layers.eachLayer(function (layer) {
+            updateLatLngInput(layer);
+        });
+    });
+
+    // Adding existing polyline data
+    var polylineData = {!! json_encode($ruasJalan['paths']) !!};
+
+    // Convert the string of coordinates into an array of LatLng objects
+    var polylineLatLngs = polylineData.split(' ').map(function(coords) {
+        var latlng = coords.split(',');
+        return L.latLng(parseFloat(latlng[0]), parseFloat(latlng[1]));
+    });
+
+    // Create the polyline and add it to the map
+    var existingPolyline = L.polyline(polylineLatLngs, {color: 'blue'}).addTo(map);
+    drawnItems.addLayer(existingPolyline);
+
+    document.getElementById('form').addEventListener('reset', function() {
+        // Menghapus semua layer dari drawnItems ketika tombol reset ditekan
+        drawnItems.clearLayers();
+        // Reset koordinat
+        document.getElementById('latlng').value = '';
+    });
+
+
+
+    document.getElementById('form').addEventListener('reset', function() {
+        // Menghapus semua layer dari drawnItems ketika tombol reset ditekan
+        drawnItems.clearLayers();
+        // Reset koordinat
+        document.getElementById('latlng').value = '';
+    });
+
+
     document.addEventListener('DOMContentLoaded', function () {
         const token = document.querySelector('meta[name="api-token"]').getAttribute('content');
         const api_main_url = 'https://gisapis.manpits.xyz/api/';
-        const map = L.map('map').setView([-8.409518, 115.188919], 11);
-
-        // Adding basemaps
-        const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 20,
-            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map);
-
-        const Esri_World = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-        });
-
-        const baseLayers = {
-            "OSM Tiles": tiles,
-            "ESRI World Imagery": Esri_World,
-        };
-
-        L.control.layers(baseLayers).addTo(map);
-
-        // Parse koordinat polyline dan tampilkan di peta
-        const polylineCoords = {!! isset($data_ruas_jalan->ruasjalan->paths) ? json_encode($data_ruas_jalan->ruasjalan->paths) : '[]' !!}.split(' ').map(coord => {
-        const [lat, lng] = coord.split(',').map(parseFloat);
-        return [lat, lng];
-    });
-
-
-        const polyline = L.polyline(polylineCoords, { color: 'red' }).addTo(map);
-        map.fitBounds(polyline.getBounds());
-
-        // Event listener untuk dropdown provinsi
-        document.getElementById('province').addEventListener('change', function() {
-            const provinceId = this.value;
-            const kabupatenSelect = document.getElementById('kabupaten');
-            const kecamatanSelect = document.getElementById('kecamatan');
-            const desaSelect = document.getElementById('desa');
-
-            // Reset dropdown yang bergantung
-            kabupatenSelect.innerHTML = '<option value="">Pilih Kabupaten</option>';
-            kecamatanSelect.innerHTML = '<option value="">Pilih Kecamatan</option>';
-            desaSelect.innerHTML = '<option value="">Pilih Desa</option>';
-
-            if (provinceId) {
-                fetch(api_main_url + 'kabupaten/' + provinceId, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    data.kabupaten.forEach(kabupaten => {
-                        const option = document.createElement('option');
-                        option.value = kabupaten.id;
-                        option.textContent = kabupaten.kabupaten;
-                        kabupatenSelect.appendChild(option);
-                    });
-                    // Set kabupaten yang sesuai dengan data yang diedit
-                    kabupatenSelect.value = {!! $data_ruas_jalan->desa->kecamatan->kabupaten_id ?? 'null' !!};
-                    // Trigger change event untuk memuat kecamatan
-                    kabupatenSelect.dispatchEvent(new Event('change'));
-                })
-                .catch(error => {
-                    console.error('Error fetching kabupaten:', error);
-                });
-            }
-        });
-
-        // Event listener untuk dropdown kabupaten
-        document.getElementById('kabupaten').addEventListener('change', function() {
-            const kabupatenId = this.value;
-            const kecamatanSelect = document.getElementById('kecamatan');
-            const desaSelect = document.getElementById('desa');
-
-            // Reset dropdown yang bergantung
-            kecamatanSelect.innerHTML = '<option value="">Pilih Kecamatan</option>';
-            desaSelect.innerHTML = '<option value="">Pilih Desa</option>';
-
-            if (kabupatenId) {
-                fetch(api_main_url + 'kecamatan/' + kabupatenId, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    data.kecamatan.forEach(kecamatan => {
-                        const option = document.createElement('option');
-                        option.value = kecamatan.id;
-                        option.textContent = kecamatan.kecamatan;
-                        kecamatanSelect.appendChild(option);
-                    });
-                    // Set kecamatan yang sesuai dengan data yang diedit
-                    kecamatanSelect.value = {!! $data_ruas_jalan->ruasjalan->desa->kecamatan_id ?? 'null' !!};
-                    // Trigger change event untuk memuat desa
-                    kecamatanSelect.dispatchEvent(new Event('change'));
-                })
-                .catch(error => {
-                    console.error('Error fetching kecamatan:', error);
-                });
-            }
-        });
-
-
-        // Event listener untuk dropdown kecamatan
-        document.getElementById('kecamatan').addEventListener('change', function() {
-            const kecamatanId = this.value;
-            const desaSelect = document.getElementById('desa');
-
-            // Reset dropdown desa
-            desaSelect.innerHTML = '<option value="">Pilih Desa</option>';
-
-            if (kecamatanId) {
-                fetch(api_main_url + 'desa/' + kecamatanId, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    data.desa.forEach(desa => {
-                        const option = document.createElement('option');
-                        option.value = desa.id;
-                        option.textContent = desa.desa;
-                        desaSelect.appendChild(option);
-                    });
-                    // Set desa yang sesuai dengan data yang diedit
-                    desaSelect.value = {!! $data_ruas_jalan->ruasjalan->desa_id ?? 'null' !!};
-                })
-                .catch(error => {
-                    console.error('Error fetching desa:', error);
-                });
-            }
-        });
         
-         // Fungsi untuk menangani pengiriman formulir
+
         document.getElementById('form').addEventListener('submit', function(event) {
             event.preventDefault();
 
-            const formData = new FormData(this);
+            const formData = {
+                paths: document.getElementById('latlng').value,
+                desa_id: document.getElementById('desa').value,
+                kode_ruas: document.getElementById('kode_ruas').value,
+                nama_ruas: document.getElementById('nama_ruas').value,
+                panjang: calculateLength(drawnItems.getLayers()[0].getLatLngs()),
+                lebar: parseFloat(document.getElementById('lebar').value),
+                eksisting_id: parseInt(document.getElementById('eksisting').value),
+                kondisi_id: parseInt(document.getElementById('kondisi').value),
+                jenisjalan_id: parseInt(document.getElementById('jenis_jalan').value),
+                keterangan: document.getElementById('keterangan').value
+            };
+
+            const idRuasJalan = "{{ $ruasJalan['id'] }}";
             const token = document.querySelector('meta[name="api-token"]').getAttribute('content');
 
-            // Mendapatkan koordinat dari polyline yang digambar
-            const latlngs = drawnItems.getLayers()[0].getLatLngs();
-            const length = calculateLength(latlngs);
-            formData.set('panjang', length.toFixed(2)); // Tambahkan panjang ke formData
-
-            fetch(this.action, {
-                method: 'POST',
+            axios.put(`https://gisapis.manpits.xyz/api/ruasjalan/${idRuasJalan}`, formData, {
                 headers: {
-                    'X-CSRF-TOKEN': token,
-                    'Authorization': 'Bearer ' + token,
-                },
-                body: formData
+                    'Authorization': `Bearer ${token}`
+                }
             })
             .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    alert('Data berhasil diperbarui!');
-                    window.location.href = '{{ route("polyline.index") }}';
-                } else {
-                    alert('Gagal memperbarui data: ' + data.message);
-                }
+                console.log('Data berhasil diperbarui:', response.data);
+                alert('Data berhasil diperbarui.');
+                window.location.href = "{{ route('polyline.index') }}";
             })
             .catch(error => {
-                console.error('Error:', error);
-                alert('Terjadi kesalahan saat memperbarui data.');
+                console.error('Terjadi kesalahan:', error);
+                if (error.response) {
+                    console.error('Server mengembalikan status error:', error.response.status);
+                    console.error('Data error:', error.response.data);
+                    alert(`Terjadi kesalahan: ${error.response.data.message}`);
+                } else {
+                    console.error('Kesalahan saat menyiapkan permintaan:', error.message);
+                    alert(`Terjadi kesalahan: ${error.message}`);
+                }
             });
         });
-        
-        function calculateLength(latlngs) {
-        let length = 0;
-        for (let i = 0; i < latlngs.length - 1; i++) {
-            length += latlngs[i].distanceTo(latlngs[i + 1]);
-        }
-        return length;
-        }
     });
 </script>
+
 
 @endpush
