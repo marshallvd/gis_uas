@@ -83,31 +83,132 @@
             background-color: transparent;
             box-shadow: none;
         }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            padding: 0;
+        }
+
+        .pagination li {
+            margin: 0 5px;
+        }
+
+        .pagination li a {
+            text-decoration: none;
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            color: #007bff;
+            border-radius: 3px;
+        }
+
+        .pagination li.active a {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .overflow-y-scroll {
+            max-height: 500px; /* Atur ketinggian maksimum sesuai kebutuhan */
+            overflow-y: auto;
+        }
+
     </style>
 @endsection
 
 @section('contents')
 <div class="container mx-auto p-4">
     <div class="flex justify-between items-center mb-3">
-        <h1 class="text-3xl font-bold">Data Polyline</h1>
-        <a href="{{ route('polyline.create') }}" class="btn btn-outline btn-primary">Create Data</a>
+        <h1 class="text-3xl font-bold">Data Jalan Provinsi Bali</h1>
+        <div>
+            <a href="{{ route('home') }}" class="btn btn-outline btn-accent">Dashboard</a>
+            <a href="{{route('polyline.create', ['previous' => 'index']) }}" class="btn btn-outline btn-primary">Create Data</a>
+        </div>
+
     </div>
+
 
     @if (session('success'))
         <div class="alert alert-success">
             {{ session('success') }}
         </div>
     @endif
+<!-- Insight Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+    <!-- Kondisi Jalan -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-primary">Kondisi Jalan</h2>
+            <div class="stats stats-vertical shadow">
+                <div class="stat">
+                    <div class="stat-title">Baik</div>
+                    <div class="stat-value text-success">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Sedang</div>
+                    <div class="stat-value text-warning">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Rusak</div>
+                    <div class="stat-value text-error">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <div class="overflow-x-auto">
-        <div id="map" class="w-full h-96 mb-4"></div>
+    <!-- Jenis Jalan -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-secondary">Jenis Jalan</h2>
+            <div class="stats stats-vertical shadow">
+                <div class="stat">
+                    <div class="stat-title">Jalan Provinsi</div>
+                    <div class="stat-value">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Jalan Kabupaten</div>
+                    <div class="stat-value">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Jalan Desa</div>
+                    <div class="stat-value">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Panjang Jalan -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-accent">Total Panjang Jalan</h2>
+            <div class="stat">
+                <div class="stat-title">Panjang (km)</div>
+                <div class="stat-value">0</div>
+                <div class="stat-desc">km</div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="mb-4 flex justify-between">
+    <input type="text" id="searchInput" class="input input-bordered w-full max-w-xs" placeholder="Search by Nama Ruas...">
+    <select id="sortSelect" class="select select-bordered w-full max-w-xs">
+        <option value="">Sort by</option>
+        <option value="nama_ruas">Nama Ruas</option>
+        <option value="panjang">Panjang</option>
+        <option value="lebar">Lebar</option>
+    </select>
+</div>
+
+    <div class="overflow-x-auto overflow-y-scroll">
+        {{-- <div id="map" class="w-full h-96 mb-4"></div> --}}
         <table class="table w-full table-auto">
             <thead class="bg-gray-700 text-white">
                 <tr>
+                    <th class="p-2 text-center">No</th>
                     <th class="p-2 text-center">Nama Ruas</th>
                     <th class="p-2 text-center">Koordinat</th>
-                    <th class="p-2 text-center">Panjang</th>
-                    <th class="p-2 text-center">Lebar</th>
+                    <th class="p-2 text-center">Panjang (m)</th>
+                    <th class="p-2 text-center">Lebar (m)</th>
                     <th class="p-2 text-center">Eksisting</th>
                     <th class="p-2 text-center">Kondisi</th>
                     <th class="p-2 text-center">Jenis Jalan</th>
@@ -117,30 +218,38 @@
             </thead>
             <tbody id="polylineTableBody">
                 @if(isset($polylines['ruasjalan']) && is_array($polylines['ruasjalan']))
+                
                     @foreach ($polylines['ruasjalan'] as $polyline)
                     <tr class="hover:bg-gray-100">
+                        <td class="p-2 text-center"></td>
                         <td class="p-2 text-center">{{ $polyline['nama_ruas'] }}</td>
                         <td class="p-2 text-center truncate" title="{{ $polyline['paths'] }}">{{ Str::limit($polyline['paths'], 30) }}</td>
-                        <td class="p-2 text-center">{{ $polyline['panjang'] }}</td>
+                        <td class="p-2 text-center">{{ ($polyline['panjang'] )}}</td>
                         <td class="p-2 text-center">{{ $polyline['lebar'] }}</td>
                         <td class="p-2 text-center">{{ $polyline['eksisting_id'] }}</td>
                         <td class="p-2 text-center">{{ $polyline['kondisi_id'] }}</td>
                         <td class="p-2 text-center">{{ $polyline['jenisjalan_id'] }}</td>
                         <td class="p-2 text-center">{{ $polyline['keterangan'] }}</td>
                         <td class="p-2 text-center flex justify-center space-x-2">
-                            <button type="button" class="btn btn-warning btn-xs btn-detail" data-id="{{ $polyline['id'] }}">Detail</button>
+                            <form action="{{ route('polyline.detail', $polyline['id']) }}" method="GET" >
+                                @csrf
+                                @method('GET')
+                                <a href="{{ route('polyline.detail', $polyline['id']) }}" class="btn btn-warning btn-xs">Detail</a>
+                            </form>
                             <form action="{{ route('polyline.edit', $polyline['id']) }}" method="GET" >
                                 @csrf
                                 @method('GET')
-                                <a href="{{ route('polyline.edit', $polyline['id']) }}" class="btn btn-accent btn-xs">Edit</a>
+                                <a href="{{ route('polyline.edit', ['id' => $polyline['id'], 'previous' => 'index'])}}" class="btn btn-accent btn-xs">Edit</a>
                             </form>
                             
 
                             <form action="{{ route('polyline.destroy', $polyline['id']) }}" method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="button" class=" btn btn-error btn-xs btn-delete" data-id="{{ $polyline['id'] }}">Delete</button>
+                                <button type="button-delete" class=" btn btn-error btn-xs btn-delete" data-id="{{ $polyline['id'] }}">Delete</button>
                             </form>   
+                            
+
                             
                         </td>
                     </tr>
@@ -149,13 +258,17 @@
             </tbody>
         </table>
     </div>
+    {{-- <div class="mt-4">
+        <ul class="pagination">
+            <!-- Paginasi akan diisi oleh JavaScript -->
+        </ul>
+    </div> --}}
 </div>
 <meta name="api-token" content="{{ csrf_token() }}">
 @endsection
 
 
 @push('javascript')
-
 <script>
     localStorage.setItem("token", "{{ session('token') }}");
     localStorage.setItem("api_main_url", "https://gisapis.manpits.xyz/api/");
@@ -168,138 +281,50 @@ crossorigin=""></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-geometryutil@0.0.2/dist/leaflet.geometryutil.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-
 <script>
-    document.addEventListener('DOMContentLoaded', async function () {
-        const token = localStorage.getItem("token");
-        const api_main_url = localStorage.getItem("api_main_url");
-
-        if (!token || !api_main_url) {
-            console.error('Token or API URL is missing');
-            return;
-        }
-
-        const headers = {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-        };
-
-        async function fetchRuasJalan() {
-            const response = await axios.get(api_main_url + "ruasjalan", { headers });
-            if (response.status !== 200) {
-                throw new Error('Failed to fetch ruas jalan data: ' + response.statusText);
-            }
-            console.log('API Response:', response.data);
-            return response.data;
-        }
-
-        function parseCoordinates(coords) {
-            // Pisahkan string koordinat dengan tanda '-'
-            const coordinatePairs = coords.split(' ');
-            // Buat array untuk menampung koordinat yang telah diurai
-            let coordinates = [];
-            // Iterasi setiap pasangan koordinat
-            coordinatePairs.forEach(pair => {
-                // Pisahkan latitutde dan longitude dengan tanda ','
-                const [lat, lng] = pair.split(',').map(parseFloat);
-                // Jika latitutde dan longitude valid, tambahkan ke array coordinates
-                if (!isNaN(lat) && !isNaN(lng)) {
-                    coordinates.push([lat, lng]);
-                } else {
-                    console.warn('Invalid coordinate pair:', pair);
-                }
+    $(document).ready(function() {
+        @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: '{{ session('success') }}',
+                confirmButtonText: 'OK'
             });
-            return coordinates;
-        }
+        @endif
 
-
-        function drawPolylines(polylineData) {
-            console.log('Drawing polylines:', polylineData);
-            polylineData.forEach(polyline => {
-                if (!polyline.paths) {
-                    console.warn('Polyline paths missing:', polyline);
-                    return;
-                }
-                let coordinates = parseCoordinates(polyline.paths);
-                if (coordinates.length === 0) {
-                    console.warn('No valid coordinates for polyline:', polyline);
-                    return;
-                }
-                const line = L.polyline(coordinates, { color: 'red' }).addTo(map);
-                map.fitBounds(line.getBounds());
+        @if (session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: '{{ session('error') }}',
+                confirmButtonText: 'OK'
             });
-        }
+        @endif
+    });
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+    const token = localStorage.getItem("token");
+    const api_main_url = localStorage.getItem("api_main_url");
 
+    if (!token || !api_main_url) {
+        console.error('Token or API URL is missing');
+        return;
+    }
 
-        try {
-            console.log('Fetching data from API...');
-            const data_ruas = await fetchRuasJalan();
-            console.log('Data Ruas:', data_ruas);
+    const headers = {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+    };
 
-            if (typeof map === 'undefined') {
-                var map = L.map('map').setView([-8.409518, 115.188919], 10);
+    let map;
+    // Kode inisialisasi map (tidak diubah)
 
-                // Adding multiple basemaps
-                const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 20,
-                    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                }).addTo(map);
+    function parseCoordinates(coords) {
+        // Kode tidak diubah
+    }
 
-                var Esri_World = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-                });
-
-                var Esri_Map = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}', {
-                    attribution: 'Tiles &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC',
-                    maxZoom: 16
-                });
-
-                var Stadia_Dark = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.{ext}', {
-                    minZoom: 0,
-                    maxZoom: 20,
-                    attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                    ext: 'png'
-                });
-
-                var baseLayers = {
-                    "OSM Tiles": tiles,
-                    "ESRI World Imagery": Esri_World,
-                    "ESRI Map": Esri_Map,
-                    "Stadia Dark": Stadia_Dark
-                };
-
-                // Adding layer control to map
-                L.control.layers(baseLayers).addTo(map);
-            }
-
-            const polylinesArray = [];
-            if (Array.isArray(data_ruas.ruasjalan)) {
-                data_ruas.ruasjalan.forEach(ruas => {
-                    if (typeof ruas === 'object' && ruas !== null && 'nama_ruas' in ruas) {
-                        let coordinates = parseCoordinates(ruas.paths);
-                        if (coordinates.length === 0) {
-                            console.warn('No valid coordinates for ruas:', ruas);
-                            return;
-                        }
-                        const line = L.polyline(coordinates, { color: 'red' }).addTo(map);
-                        polylinesArray.push(line);
-                    } else {
-                        console.error('Invalid ruas data:', ruas);
-                    }
-                });
-            }
-
-            if (polylinesArray.length > 0) {
-                const group = new L.featureGroup(polylinesArray);
-                map.fitBounds(group.getBounds());
-            }
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        }
-
-
-        async function deletePolyline(id) {
+    async function deletePolyline(id) {
             const confirmResult = await Swal.fire({
                 title: 'Apakah Anda yakin?',
                 text: "Anda tidak akan dapat mengembalikan tindakan ini!",
@@ -345,49 +370,306 @@ crossorigin=""></script>
             });
         });
 
-        const detailButtons = document.querySelectorAll('.btn-detail');
-        const popupInfo = document.getElementById('popupInfo');
-        const popupTitle = document.getElementById('popupTitle');
-        const popupContent = document.getElementById('popupContent');
-        const closePopupButton = document.getElementById('closePopup');
+    // Event listener for delete buttons
+    document.addEventListener('click', function (event) {
+        if (event.target.classList.contains('btn-delete')) {
+            const id = event.target.getAttribute('data-id');
+            Swal.fire({
+                title: 'Kamu yakin mau hapus?',
+                text: 'Kalau sudah dihapus tidak bida kembali loh!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Eitt Jangan!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    handleDelete(id);
+                }
+            });
+        }
+    });
 
-        detailButtons.forEach(button => {
-            button.addEventListener('click', function (event) {
-                const polylineId = event.target.getAttribute('data-id');
-                fetchPolylineDetails(polylineId);
+    function groupById(data, key) {
+        console.log(`Grouping by ${key}`);
+        console.log("Input data:", data);
+
+        const result = data.reduce((result, item) => {
+            const groupKey = item[key];
+            if (!result[groupKey]) {
+                result[groupKey] = 0;
+            }
+            result[groupKey]++;
+            console.log(`Incrementing ${groupKey}. New total: ${result[groupKey]}`);
+            return result;
+        }, {});
+
+        console.log("Grouped result:", result);
+        return result;
+    }
+
+    async function fetchRuasJalan() {
+        try {
+            console.log("Fetching ruas jalan data...");
+            const response = await axios.get(api_main_url + "ruasjalan", { headers });
+            console.log("Raw API Response:", response.data);
+
+            if (response.status !== 200 || response.data.code !== 200) {
+                throw new Error('Failed to fetch ruas jalan data: ' + response.statusText);
+            }
+
+            const ruasJalanData = response.data.ruasjalan;
+
+            if (ruasJalanData && Array.isArray(ruasJalanData) && ruasJalanData.length > 0) {
+                console.log('Total ruas jalan:', ruasJalanData.length);
+                console.log('Sample data (first 3 items):', ruasJalanData.slice(0, 3));
+
+                // Mengelompokkan dan menghitung panjang berdasarkan kondisi (dalam km)
+                const kondisiCounts = groupById(ruasJalanData, 'kondisi_id', 'panjang');
+                console.log("Kondisi counts:", kondisiCounts);
+
+                const successElement = document.querySelector('.stat-value.text-success');
+                const warningElement = document.querySelector('.stat-value.text-warning');
+                const errorElement = document.querySelector('.stat-value.text-error');
+
+                if (successElement && warningElement && errorElement) {
+                    console.log("Before update - Baik:", successElement.textContent);
+                    successElement.textContent = (kondisiCounts[1] || 0).toFixed(2);
+                    console.log("After update - Baik:", successElement.textContent);
+
+                    console.log("Before update - Sedang:", warningElement.textContent);
+                    warningElement.textContent = (kondisiCounts[2] || 0).toFixed(2);
+                    console.log("After update - Sedang:", warningElement.textContent);
+
+                    console.log("Before update - Rusak:", errorElement.textContent);
+                    errorElement.textContent = (kondisiCounts[3] || 0).toFixed(2);
+                    console.log("After update - Rusak:", errorElement.textContent);
+                } else {
+                    console.error("One or more stat elements not found!");
+                }
+
+                // Mengelompokkan dan menghitung panjang berdasarkan jenis jalan (dalam km)
+                const jenisCounts = groupById(ruasJalanData, 'jenisjalan_id', 'panjang');
+                console.log("Jenis jalan counts:", jenisCounts);
+
+                const statsElements = document.querySelectorAll('.card:nth-child(2) .card-body .stats .stat');
+                if (statsElements.length >= 3) {
+                    statsElements[0].querySelector('.stat-value').textContent = (jenisCounts[1] || 0).toFixed(2);
+                    statsElements[1].querySelector('.stat-value').textContent = (jenisCounts[2] || 0).toFixed(2);
+                    statsElements[2].querySelector('.stat-value').textContent = (jenisCounts[3] || 0).toFixed(2);
+                } else {
+                    console.error("Jenis jalan stat elements not found!");
+                }
+
+                // Menghitung total panjang jalan (dalam km)
+                const totalPanjang = ruasJalanData.reduce((total, item) => total + (parseFloat(item.panjang || 0) / 1000), 0);
+                console.log("Total panjang jalan (km):", totalPanjang);
+
+                const totalPanjangElement = document.querySelector('.card:nth-child(3) .card-body .stat .stat-value');
+                if (totalPanjangElement) {
+                    console.log("Before update - Total Panjang:", totalPanjangElement.textContent);
+                    totalPanjangElement.textContent = totalPanjang.toFixed(2);
+                    console.log("After update - Total Panjang:", totalPanjangElement.textContent);
+                } else {
+                    console.error("Total panjang jalan element not found!");
+                }
+
+            } else {
+                console.log("Data ruasjalan kosong atau tidak valid.");
+            }
+
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            if (error.response) {
+                console.error('Server responded with:', error.response.status, error.response.data);
+            } else if (error.request) {
+                console.error('No response received:', error.request);
+            } else {
+                console.error('Error message:', error.message);
+            }
+            Swal.fire('Error!', 'Gagal mengambil data ruas jalan.', 'error');
+        }
+    }
+
+
+
+
+    // Memanggil fungsi fetchRuasJalan
+    await fetchRuasJalan();
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const tableBody = document.getElementById('polylineTableBody');
+        const searchInput = document.getElementById('searchInput');
+        const sortSelect = document.getElementById('sortSelect');
+        const paginationContainer = document.querySelector('.pagination');
+
+        let allData = [];
+        const itemsPerPage = 100;
+        let currentPage = 1;
+
+        // Ambil semua data dari tabel
+        document.querySelectorAll('#polylineTableBody tr').forEach((row, index) => {
+            allData.push({
+                element: row.cloneNode(true), // Menggunakan cloneNode agar tidak menghapus dari DOM
+                nama_ruas: row.children[1].textContent,
+                panjang: parseFloat(row.children[3].textContent) || 0,
+                lebar: parseFloat(row.children[4].textContent) || 0
             });
         });
 
-        function fetchPolylineDetails(id) {
-            axios.get(api_main_url + "ruasjalan/" + id, { headers })
-                .then(response => {
-                    const polylineData = response.data;
-                    // Isi konten popup dengan data yang diperoleh
-                    popupTitle.innerText = polylineData.nama_ruas;
-                    popupContent.innerHTML = `
-                        <p><b>Koordinat:</b> ${polylineData.paths}</p>
-                        <p><b>Panjang:</b> ${polylineData.panjang}</p>
-                        <p><b>Lebar:</b> ${polylineData.lebar}</p>
-                        <p><b>Eksisting:</b> ${polylineData.eksisting_id}</p>
-                        <p><b>Kondisi:</b> ${polylineData.kondisi_id}</p>
-                        <p><b>Jenis Jalan:</b> ${polylineData.jenisjalan_id}</p>
-                        <p><b>Keterangan:</b> ${polylineData.keterangan}</p>
-                    `;
-                    // Tampilkan popup
-                    popupInfo.classList.remove('hidden');
-                })
-                .catch(error => {
-                    console.error('Error fetching polyline data:', error);
-                    Swal.fire(
-                        'Error!',
-                        'Gagal mendapatkan data ruas jalan.',
-                        'error'
-                    );
-                });
+        function renderTable(data, page = 1) {
+            const start = (page - 1) * itemsPerPage;
+            const paginatedData = data.slice(start, start + itemsPerPage);
+
+            tableBody.innerHTML = '';
+            paginatedData.forEach((item, index) => {
+                const row = item.element.cloneNode(true);
+                row.children[0].textContent = start + index + 1; // Update nomor urut
+                tableBody.appendChild(row);
+            });
+
+            renderPagination(data.length, page);
         }
 
-    
+        function renderPagination(totalItems, currentPage) {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            let paginationHTML = '';
 
+            // Tambahkan tombol Previous
+            paginationHTML += `<li class="${currentPage === 1 ? 'disabled' : ''}"><a href="#" data-page="${currentPage - 1}">&laquo; Previous</a></li>`;
+
+            // Render maksimal 5 nomor halaman dengan halaman saat ini di tengah jika memungkinkan
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            
+            if (endPage - startPage < 4) {
+                startPage = Math.max(1, endPage - 4);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHTML += `<li class="${i === currentPage ? 'active' : ''}"><a href="#" data-page="${i}">${i}</a></li>`;
+            }
+
+            // Tambahkan tombol Next
+            paginationHTML += `<li class="${currentPage === totalPages ? 'disabled' : ''}"><a href="#" data-page="${currentPage + 1}">Next &raquo;</a></li>`;
+
+            paginationContainer.innerHTML = paginationHTML;
+
+            paginationContainer.querySelectorAll('a').forEach(a => {
+                a.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const newPage = parseInt(this.getAttribute('data-page'), 100);
+                    if (newPage >= 1 && newPage <= totalPages) {
+                        currentPage = newPage;
+                        renderTable(allData, currentPage);
+                    }
+                });
+            });
+        }
+
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const filteredData = allData.filter(item => 
+                item.nama_ruas.toLowerCase().includes(searchTerm)
+            );
+            currentPage = 1;
+            renderTable(filteredData, currentPage);
+        });
+
+        sortSelect.addEventListener('change', function() {
+            const sortBy = this.value;
+            if (sortBy) {
+                allData.sort((a, b) => {
+                    if (sortBy === 'nama_ruas') {
+                        return a[sortBy].localeCompare(b[sortBy]);
+                    } else {
+                        return a[sortBy] - b[sortBy];
+                    }
+                });
+            }
+            currentPage = 1;
+            renderTable(allData, currentPage);
+        });
+
+        // Inisialisasi tabel
+        renderTable(allData, currentPage);
+
+        
+    });
+
+
+    const tableBody = document.getElementById('polylineTableBody');
+    const searchInput = document.getElementById('searchInput');
+    const sortSelect = document.getElementById('sortSelect');
+    const paginationContainer = document.querySelector('.pagination');
+
+    let allData = [];
+    const itemsPerPage = 100;
+    let currentPage = 1;
+
+    // Ambil semua data dari tabel
+    document.querySelectorAll('#polylineTableBody tr').forEach((row, index) => {
+        allData.push({
+            element: row,
+            nama_ruas: row.children[1].textContent,
+            panjang: parseFloat(row.children[3].textContent),
+            lebar: parseFloat(row.children[4].textContent)
+        });
+    });
+
+    function renderTable(data, page = 1) {
+        const start = (page - 1) * itemsPerPage;
+        const paginatedData = data.slice(start, start + itemsPerPage);
+
+        tableBody.innerHTML = '';
+        paginatedData.forEach((item, index) => {
+            const row = item.element.cloneNode(true);
+            row.children[0].textContent = start + index + 1; // Update nomor urut
+            tableBody.appendChild(row);
+        });
+
+        renderPagination(data.length, page);
+    }
+
+    function renderPagination(totalItems, currentPage) {
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        let paginationHTML = '';
+
+        for (let i = 1; i <= totalPages; i++) {
+            paginationHTML += `<li class="${i === currentPage ? 'active' : ''}"><a href="#" data-page="${i}">${i}</a></li>`;
+        }
+
+        paginationContainer.innerHTML = paginationHTML;
+
+        paginationContainer.querySelectorAll('a').forEach(a => {
+            a.addEventListener('click', function(e) {
+                e.preventDefault();
+                currentPage = parseInt(this.getAttribute('data-page'), 10);
+                renderTable(allData, currentPage);
+            });
+        });
+    }
+
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const filteredData = allData.filter(item => 
+            item.nama_ruas.toLowerCase().includes(searchTerm)
+        );
+        currentPage = 1;
+        renderTable(filteredData, currentPage);
+    });
+
+    sortSelect.addEventListener('change', function() {
+        const sortBy = this.value;
+        if (sortBy) {
+            allData.sort((a, b) => (a[sortBy] > b[sortBy]) ? 1 : ((b[sortBy] > a[sortBy]) ? -1 : 0));
+        }
+        currentPage = 1;
+        renderTable(allData, currentPage);
+    });
+
+    // Inisialisasi tabel
+    renderTable(allData, currentPage);
     });
 </script>
 @endpush

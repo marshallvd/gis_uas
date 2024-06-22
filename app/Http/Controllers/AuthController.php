@@ -9,17 +9,14 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use App\Models\User;
 
 class AuthController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('auth')->except(['register', 'registerSave', 'login', 'loginAction', 'showLoginForm']);
-    // }
-
     public function showLoginForm(Request $request)
     {
         $status = $request->session()->get('status');
@@ -33,46 +30,43 @@ class AuthController extends Controller
 
     public function registerSave(Request $request)
     {
-        $data = Validator::make($request->all(), [
+        // Validate incoming request data
+        $data = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:8|confirmed'
-        ])->validate();
-
-        User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-            'level' => 'Admin'
         ]);
-
+    
         try {
-            $client = new Client();
-            $response = $client->post('https://gisapis.manpits.xyz/api/register', [
-                'form_params' => $data,
+            // Create a new User record using the validated data
+            $user = User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => Hash::make($data['password']),
+                'level' => 'Admin' // Example: Assigning a default level
             ]);
-
-            $responseBody = json_decode($response->getBody(), true);
+    
+            // If user creation is successful, redirect to login page with success message
             return redirect()->route('login')->with('status', 'Registration successful! Please login.');
-            
         } catch (\Exception $e) {
+            // If any exception occurs during user creation, redirect back with error message
             return redirect()->back()->withErrors(['registration' => 'Registration failed: ' . $e->getMessage()]);
         }
     }
-
+    
     public function login(Request $request)
     {
         $data = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|string|min:8'
         ])->validate();
-
+    
         if (!Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed')
             ]);
         }
-
+    
         $request->session()->regenerate();
 
         try {
@@ -104,30 +98,31 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        try {
-            $client = new Client();
-            $token = session('token'); // Ambil token dari sesi
-
-            $response = $client->post('https://gisapis.manpits.xyz/api/logout', [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $token,
-                ],
-            ]);
-
-            Auth::guard('web')->logout();
-            $request->session()->invalidate();
-            session()->forget('token'); // Hapus token dari sesi setelah logout berhasil
-
-            return redirect('login')->with('status', 'Logged out successfully.');
-        } catch (RequestException $e) {
-            if ($e->hasResponse()) {
-                $response = $e->getResponse();
-                $content = $response->getBody()->getContents();
-                return redirect()->back()->withErrors(['logout' => 'Logout failed, please try again.']);
-            } else {
-                return redirect()->back()->withErrors(['logout' => 'Failed to connect to the server.']);
+        $token = session('token');
+    
+        if ($token) {
+            try {
+                $client = new Client();
+                $response = $client->post('https://gisapis.manpits.xyz/api/logout', [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $token,
+                    ],
+                ]);
+            } catch (RequestException $e) {
+                if ($e->hasResponse() && $e->getResponse()->getStatusCode() == 402) {
+                    Log::error('API Subscription Issue: ' . $e->getMessage());
+                } else {
+                    Log::error('Error during logout: ' . $e->getMessage());
+                }
             }
         }
+    
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        session()->forget('token');
+    
+        return redirect()->route('dashboard')->with('status', 'Logged out successfully. Note: There might be an issue with our external services.');
     }
 
     public function profile()

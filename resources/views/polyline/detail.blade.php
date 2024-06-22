@@ -57,7 +57,7 @@
 <div class="container mx-auto my-8">
     <div class="custom-card">
         <div class="custom-card-header">
-            <h1 class="text-xl font-bold">Edit Data Jalan</h1>
+            <h1 class="text-xl font-bold">Detail Data Jalan</h1>
             <a href="{{ route('polyline.index') }}" class="btn btn-outline btn-secondary">Kembali</a>
         </div>
         <div class="custom-card-body">
@@ -82,6 +82,7 @@
                                 <span class="label-text"><b>Nama Ruas</b></span>
                             </label>
                             <input type="text" class="input input-bordered w-full" id="nama_ruas" name="nama_ruas" value="{{ $ruasJalan['nama_ruas'] }}" required />
+                            
 
 
 
@@ -251,11 +252,7 @@
                     </div>
                 </div>
 
-                <!-- Tombol Submit dan Reset -->
-                <div class="flex justify-between">
-                    <button type="submit" class="btn btn-primary w-1/2 mt-4">Update Jalan</button>
-                    <button type="reset" class="btn btn-accent w-1/2 mt-4 ml-2">Reset</button>
-                </div>
+
             </form>
         </div>
     </div>
@@ -321,60 +318,60 @@ L.control.layers(baseLayers).addTo(map);
     var drawnItems = new L.FeatureGroup();
     map.addLayer(drawnItems);
 
-    var drawControl = new L.Control.Draw({
-        edit: {
-            featureGroup: drawnItems
-        },
-        draw: {
-            polyline: true,
-            polygon: false,
-            circle: false,
-            rectangle: false,
-            marker: false,
-            circlemarker: false
-        }
-    });
-    map.addControl(drawControl);
+    // var drawControl = new L.Control.Draw({
+    //     edit: {
+    //         featureGroup: drawnItems
+    //     },
+    //     draw: {
+    //         polyline: true,
+    //         polygon: false,
+    //         circle: false,
+    //         rectangle: false,
+    //         marker: false,
+    //         circlemarker: false
+    //     }
+    // });
+    // map.addControl(drawControl);
 
-    function calculateLength(latlngs) {
-        var totalLength = 0;
+    // function calculateLength(latlngs) {
+    //     var totalLength = 0;
 
-        for (var i = 1; i < latlngs.length; i++) {
-            totalLength += latlngs[i - 1].distanceTo(latlngs[i]);
-        }
+    //     for (var i = 1; i < latlngs.length; i++) {
+    //         totalLength += latlngs[i - 1].distanceTo(latlngs[i]);
+    //     }
 
-        return totalLength;
-    }
+    //     return totalLength;
+    // }
 
-    function updateLatLngInput(layer) {
-        var latlngs = layer.getLatLngs();
-        var latlngString = latlngs.map(function(latlng) {
-            return `${latlng.lat},${latlng.lng}`;
-        }).join(' ');
+    // function updateLatLngInput(layer) {
+    //     var latlngs = layer.getLatLngs();
+    //     var latlngString = latlngs.map(function(latlng) {
+    //         return `${latlng.lat},${latlng.lng}`;
+    //     }).join(' ');
 
-        document.getElementById('latlng').value = latlngString;
+    //     document.getElementById('latlng').value = latlngString;
 
-        var length = calculateLength(latlngs);
-        console.log('Length:', length);
-        Swal.fire({
-            title: 'Panjang Polyline',
-            text: `Panjang Polyline: ${length.toFixed(2)} meters`,
-            icon: 'info'
-        });
-    }
+    //     var length = calculateLength(latlngs);
+    //     console.log('Length:', length);
+    //     Swal.fire({
+    //         title: 'Panjang Polyline',
+    //         text: `Panjang Polyline: ${length.toFixed(2)} meters`,
+    //         icon: 'info'
+    //     });
+    // }
 
-    map.on(L.Draw.Event.CREATED, function (event) {
-        var layer = event.layer;
-        updateLatLngInput(layer);
-        drawnItems.addLayer(layer);
-    });
+    // map.on(L.Draw.Event.CREATED, function (event) {
+    //     var layer = event.layer;
+    //     updateLatLngInput(layer);
+    //     drawnItems.addLayer(layer);
+    // });
 
-    map.on(L.Draw.Event.EDITED, function (event) {
-        var layers = event.layers;
-        layers.eachLayer(function (layer) {
-            updateLatLngInput(layer);
-        });
-    });
+    // map.on(L.Draw.Event.EDITED, function (event) {
+    //     var layers = event.layers;
+    //     layers.eachLayer(function (layer) {
+    //         updateLatLngInput(layer);
+    //     });
+    // });
 
     // Adding existing polyline data
     var polylineData = {!! json_encode($ruasJalan['paths']) !!};
@@ -411,24 +408,8 @@ L.control.layers(baseLayers).addTo(map);
         const api_main_url = 'https://gisapis.manpits.xyz/api/';
         
 
-        // Mendapatkan parameter 'previous' dari URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const previousPage = urlParams.get('previous') || 'index'; // Default ke 'index' jika tidak ada
-
-        // Fungsi untuk menentukan URL redirect
-        function getRedirectUrl() {
-            switch(previousPage) {
-                case 'home':
-                    return "{{ route('home') }}";
-                case 'index':
-                default:
-                    return "{{ route('polyline.index') }}";
-            }
-        }
-
         document.getElementById('form').addEventListener('submit', function(event) {
             event.preventDefault();
-
 
             // SweetAlert2 konfirmasi
             Swal.fire({
@@ -474,7 +455,7 @@ L.control.layers(baseLayers).addTo(map);
                             icon: 'success',
                             confirmButtonText: 'OK'
                         }).then(() => {
-                            window.location.href = getRedirectUrl();
+                            window.location.href = "{{ route('polyline.index') }}";
                         });
                     })
                     .catch(error => {

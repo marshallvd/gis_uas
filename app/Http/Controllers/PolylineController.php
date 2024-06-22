@@ -25,7 +25,36 @@ class PolylineController extends Controller
                 'Accept' => 'application/json',
             ],
         ]);
+
+        if ($response->getStatusCode() == 200) {
+            $polylines = json_decode($response->getBody(), true);
     
+            // Inisialisasi variabel untuk menyimpan jumlah kondisi jalan
+            $jalan_baik = 0;
+            $jalan_sedang = 0;
+            $jalan_rusak = 0;
+    
+        if (isset($polylines['ruasjalan']) && is_array($polylines['ruasjalan'])) {
+            foreach ($polylines['ruasjalan'] as $polyline) {
+                switch ($polyline['kondisi_id']) {
+                    case 1:
+                        $jalan_baik++;
+                        break;
+                    case 2:
+                        $jalan_sedang++;
+                        break;
+                    case 3:
+                        $jalan_rusak++;
+                        break;
+                    default:
+                        // do nothing or handle other cases
+                        break;
+                }
+            }
+        } else {
+            Log::warning('No ruasjalan data or invalid format:', (array)$polylines);
+        }
+        
         if ($response->getStatusCode() == 200) {
             $polylines = json_decode($response->getBody(), true);
             
@@ -42,10 +71,113 @@ class PolylineController extends Controller
             return redirect()->back()->with('error', 'Failed to fetch data from API');
         }
     }
+}
 
     public function create()
     {
         return view('polyline.create');
+    }
+
+public function detail($id)
+    {
+        $token = session('token');
+        $client = new Client();
+
+        // try {
+            // Permintaan untuk mendapatkan data ruas jalan berdasarkan ID
+            $response = $client->request('GET', 'https://gisapis.manpits.xyz/api/ruasjalan/' . $id, [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $token,
+                    'Accept' => 'application/json',
+                ],
+            ]);
+
+            if ($response->getStatusCode() == 200) {
+                $data_ruas_jalan = json_decode($response->getBody(), true);
+                $ruasJalan = $data_ruas_jalan['ruasjalan'];
+
+                // Permintaan untuk mendapatkan data tambahan
+                $regionResponse = $client->request('GET', 'https://gisapis.manpits.xyz/api/mregion', [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $token,
+                        'Accept' => 'application/json',
+                    ],
+                ]);
+                $eksistingResponse = $client->request('GET', 'https://gisapis.manpits.xyz/api/meksisting', [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $token,
+                        'Accept' => 'application/json',
+                    ],
+                ]);
+                $jenisjalanResponse = $client->request('GET', 'https://gisapis.manpits.xyz/api/mjenisjalan', [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $token,
+                        'Accept' => 'application/json',
+                    ],
+                ]);
+                $kondisiResponse = $client->request('GET', 'https://gisapis.manpits.xyz/api/mkondisi', [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $token,
+                        'Accept' => 'application/json',
+                    ],
+                ]);
+
+                if ($regionResponse->getStatusCode() == 200 &&          $eksistingResponse->getStatusCode() == 200 && $jenisjalanResponse->getStatusCode() == 200 && $kondisiResponse->getStatusCode() == 200) {
+                    $regionData = json_decode($regionResponse->getBody(), true);
+                    $eksistingData = json_decode($eksistingResponse->getBody(), true)['eksisting'];
+                    $jenisjalanData = json_decode($jenisjalanResponse->getBody(), true)['eksisting'];
+                    $kondisiData = json_decode($kondisiResponse->getBody(), true)['eksisting'];
+
+                    // Mencari kecamatan_id, kabupaten_id, dan province_id
+                    $desa_id = $ruasJalan['desa_id'];
+                    $kecamatan_id = null;
+                    $kabupaten_id = null;
+                    $province_id = null;
+
+                    foreach ($regionData['desa'] as $desa) {
+                        if ($desa['id'] == $desa_id) {
+                            $kecamatan_id = $desa['kec_id'];
+                            break;
+                        }
+                    }
+
+                    foreach ($regionData['kecamatan'] as $kecamatan) {
+                        if ($kecamatan['id'] == $kecamatan_id) {
+                            $kabupaten_id = $kecamatan['kab_id'];
+                            break;
+                        }
+                    }
+
+                    foreach ($regionData['kabupaten'] as $kabupaten) {
+                        if ($kabupaten['id'] == $kabupaten_id) {
+                            $province_id = $kabupaten['prov_id'];
+                            break;
+                        }
+                    }
+
+                    $ruasJalan['kecamatan_id'] = $kecamatan_id;
+                    $ruasJalan['kabupaten_id'] = $kabupaten_id;
+                    $ruasJalan['province_id'] = $province_id;
+
+
+                    return view('polyline.detail', compact('ruasJalan', 'regionData', 'eksistingData', 'jenisjalanData', 'kondisiData'));
+                } else {
+                    return redirect()->route('polyline.index')->with('error', 'Failed to retrieve data from one or more sources');
+                }
+            } else {
+                return redirect()->route('polyline.index')->with('error', 'Failed to retrieve ruas jalan data');
+            }
+        // } catch (\Exception $e) {
+        //     return redirect()->route('polyline.edit', ['id' => $id])->with([
+        //         'error' => 'An error occurred: ' . $e->getMessage(),
+        //         'ruasjalan' => $ruasJalan, // Mengirim kembali data ruasjalan
+        //         'regionData' => $regionData, // Mengirim kembali data tambahan
+        //         'eksistingData' => $eksistingData, // Mengirim kembali data tambahan
+        //         'jenisjalanData' => $jenisjalanData, // Mengirim kembali data tambahan
+        //         'kondisiData' => $kondisiData, // Mengirim kembali data tambahan
+        //     ]);
+        // }
+        
     }
 
     public function store(Request $request)
@@ -135,7 +267,7 @@ class PolylineController extends Controller
                     ],
                 ]);
 
-                if ($regionResponse->getStatusCode() == 200 && $eksistingResponse->getStatusCode() == 200 && $jenisjalanResponse->getStatusCode() == 200 && $kondisiResponse->getStatusCode() == 200) {
+                if ($regionResponse->getStatusCode() == 200 &&          $eksistingResponse->getStatusCode() == 200 && $jenisjalanResponse->getStatusCode() == 200 && $kondisiResponse->getStatusCode() == 200) {
                     $regionData = json_decode($regionResponse->getBody(), true);
                     $eksistingData = json_decode($eksistingResponse->getBody(), true)['eksisting'];
                     $jenisjalanData = json_decode($jenisjalanResponse->getBody(), true)['eksisting'];
@@ -254,7 +386,7 @@ class PolylineController extends Controller
             return [];
         }
     }
-
+    
     public function destroy($id)
     {
         $token = session('token');
@@ -272,6 +404,8 @@ class PolylineController extends Controller
             return redirect()->back()->with('error', 'Gagal menghapus data polyline.');
         }
     }
+    
+    
 
     
 

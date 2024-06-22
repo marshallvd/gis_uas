@@ -421,6 +421,22 @@ crossorigin=""></script>
         console.error('Error fetching jenis jalan:', error); // Log error
     });
 
+    // Mendapatkan parameter 'previous' dari URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const previousPage = urlParams.get('previous') || 'index'; // Default ke 'index' jika tidak ada
+
+    // Fungsi untuk menentukan URL redirect
+    function getRedirectUrl() {
+        switch(previousPage) {
+            case 'home':
+                return "{{ route('home') }}";
+            case 'index':
+            default:
+                return "{{ route('polyline.index') }}";
+        }
+    }
+
+
     document.getElementById('form').addEventListener('submit', function(event) {
         event.preventDefault(); // Mencegah formulir dikirimkan secara langsung
 
@@ -479,7 +495,7 @@ crossorigin=""></script>
         // });
         .then(({ status, body }) => {
             if (status !== 200) {
-                console.error('Error data:', body); // Log error data
+                console.error('Error data:', body);
                 throw new Error(body.message || 'Gagal menyimpan data.');
             }
             console.log('Data berhasil disimpan:', body);
@@ -488,8 +504,8 @@ crossorigin=""></script>
                 title: 'Sukses!',
                 text: 'Data berhasil disimpan.'
             }).then(() => {
-                // Redirect to index page after successful data submission
-                window.location.href = "{{ route('polyline.index') }}";
+                // Redirect ke halaman sebelumnya
+                window.location.href = getRedirectUrl();
             });
         })
         .catch(error => {
@@ -582,8 +598,11 @@ crossorigin=""></script>
             // Calculate the length of the polyline
             var length = calculateLength(latlngs);
             console.log('Length:', length);
-
-            alert(`Panjang Polyline: ${length.toFixed(2)} meters`);
+            Swal.fire({
+                title: 'Panjang Polyline',
+                text: `Panjang Polyline: ${length.toFixed(2)} meters`,
+                icon: 'info'
+            });
         });
 
         map.on(L.Draw.Event.EDITED, function (event) {
@@ -607,8 +626,11 @@ crossorigin=""></script>
             // Calculate the length of the polyline
             var length = calculateLength(latlngs);
             console.log('Length:', length);
-
-            alert(`Panjang Polyline: ${length.toFixed(2)} meters`);
+            Swal.fire({
+                title: 'Panjang Polyline',
+                text: `Panjang Polyline: ${length.toFixed(2)} meters`,
+                icon: 'info'
+            });
         });
 
 

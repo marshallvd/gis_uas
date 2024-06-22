@@ -32,6 +32,8 @@ Route::get('/polyline/{id}/edit', [PolylineController::class, 'edit'])->name('po
 Route::put('/polyline/{id}', [PolylineController::class, 'update'])->name('polyline.update'); // Add this line
 Route::delete('/polyline/{id}', [PolylineController::class, 'destroy'])->name('polyline.destroy');
 
+Route::get('/polyline/{id}', [PolylineController::class, 'detail'])->name('polyline.detail');
+
 // Route controller untuk otentikasi
 Route::controller(AuthController::class)->group(function () {
     Route::get('register', 'register')->name('register');
@@ -40,9 +42,9 @@ Route::controller(AuthController::class)->group(function () {
     Route::get('login', 'showLoginForm')->name('login');
     Route::post('login', 'login')->name('login.action');
 
-    Route::post('logout', 'logout')->middleware('auth')->name('logout');
+    // Route::post('logout', 'logout')->middleware('auth')->name('logout');
 });
-
+Route::post('logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 // Mengamankan halaman profile dengan middleware 'auth'
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [AuthController::class, 'profile'])->name('profile');

@@ -8,6 +8,8 @@
     <meta name="author" content="">
     <title>Dashboard</title>
     @vite('resources/css/app.css')
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 <body>
     <div class="container mx-auto px-4">
@@ -21,7 +23,7 @@
                     </div>
                 </div>
                 @if (Auth::check())
-                    <div class="dropdown dropdown-end">
+                    <div class="dropdown dropdown-end" id="profileDropdown">
                         <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
                             <div class="w-10 rounded-full">
                                 <img src="{{ asset('storage/logo/logo.jpeg') }}" alt="Logo" style="width: 100px; height: auto;">
@@ -37,7 +39,12 @@
                             <li>
                                 <form action="{{ route('logout') }}" method="POST" id="logoutForm">
                                     @csrf
-                                    <button type="button" onclick="logout()">Logout</button>
+                                    <button type="button" onclick="confirmLogout(event)">Logout</button>
+                                    @if(session('status'))
+                                        <div class="alert alert-success">
+                                            {{ session('status') }}
+                                        </div>
+                                    @endif
                                 </form>
                             </li>
                         </ul>
@@ -49,17 +56,64 @@
         </div>
 
         <div>
-    
             <div>@yield('contents')</div>
         </div>
 
         @extends('layouts.footer')
     </div>
     @stack('javascript')
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        function logout() {
+        document.addEventListener('DOMContentLoaded', (event) => {
+            @if(session('status'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('status') }}',
+                    timer: 3000,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                });
+            @endif
+
+            const profileDropdown = document.getElementById('profileDropdown');
+
+            if (profileDropdown) {
+                profileDropdown.addEventListener('click', () => {
+                    // Toggle visibility of dropdown menu
+                    const dropdownMenu = profileDropdown.querySelector('.dropdown-content');
+                    dropdownMenu.classList.toggle('hidden');
+                });
+            }
+        });
+
+        function confirmLogout(event) {
+            event.preventDefault();
+            Swal.fire({
+                title: 'Yakin mau log out?',
+                text: "Kalau sudah log out gabisa balik lagi loh !",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, logout!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.removeItem('token');
+                    document.getElementById('logoutForm').submit();
+                }
+            });
+        }
+
+        function logout(event) {
+            event.preventDefault();
             localStorage.removeItem('token');
-            document.getElementById('logoutForm').submit();
+            if (event.target.closest('form').id === 'logoutForm') {
+                document.getElementById('logoutForm').submit();
+            } else {
+                document.getElementById('logoutFormSidebar').submit();
+            }
         }
     </script>
 </body>

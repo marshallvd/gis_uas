@@ -8,6 +8,8 @@
     <meta name="author" content="">
     <title>Login</title>
     @vite('resources/css/app.css')
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 <body>
     <div class="relative flex flex-col justify-center h-screen overflow-hidden">
@@ -56,63 +58,22 @@
         </div>
     </div>
 
-@push('javascript')
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // document.getElementById('loginForm').addEventListener('submit', function(event) {
-        //     event.preventDefault();
-        //     alert('test')
-        //     let isValid = true;
-        //     const form = document.getElementById('loginForm')
-
-        //     const email = document.getElementById('email').value.trim();
-        //     const password = document.getElementById('password').value.trim();
-            
-        //     const emailError = document.getElementById('emailError');
-        //     const passwordError = document.getElementById('passwordError');
-
-        //     emailError.style.display = 'none';
-        //     passwordError.style.display = 'none';
-
-        //     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        //     if (!emailPattern.test(email)) {
-        //         isValid = false;
-        //         emailError.textContent = 'Invalid email address';
-        //         emailError.style.display = 'block';
-        //     }
-
-        //     if (password.length < 6) {
-        //         isValid = false;
-        //         passwordError.textContent = 'Password must be at least 6 characters long';
-        //         passwordError.style.display = 'block';
-        //     }
-
-        //     if (isValid) {
-        //         const formData = new FormData(form);
-
-        //         // Menggunakan fetch untuk mengirim data formulir
-        //         fetch("https://gisapis.manpits.xyz/api/login", {
-        //             method: 'POST',
-        //             body: formData
-        //         })
-        //         .then(response => response.json())
-        //         .then(data => {
-        //             if (data.meta && data.meta.token) {
-        //                 alert(data.meta.message);
-        //                 // Set token ke localStorage
-        //                 localStorage.setItem("token", data.meta.token);
-        //                 console.log(localStorage.getItem('token'))
-        //                 // window.location.href = '/home.html';
-        //             } else {
-        //                 alert('Failed to submit Login form. Please try again later.');
-        //             }
-        //         })
-        //         .catch(error => {
-        //             alert('Failed to submit Login form. Please try again later.');
-        //             console.error('Error:', error);
-        //         });
-        //     }
-        // });
+        // Handle login success notification
+        document.addEventListener('DOMContentLoaded', function () {
+            @if(session('status'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('status') }}',
+                    timer: 3000,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                });
+            @endif
+        });
     </script>
-@endpush
 </body>
 </html>
