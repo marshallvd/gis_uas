@@ -174,6 +174,7 @@
 
         .leaflet-popup-content {
             font-size: 14px;
+            width: 300px;
         }
 
         .leaflet-popup-content h4 {
@@ -257,6 +258,10 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
+.a{
+    color: #fff
+}
+
     </style>
 @endsection
 
@@ -313,6 +318,20 @@
         <input type="text" id="search-input" placeholder="Nama Jalan" class="input input-bordered w-full max-w-xs" />
         <button id="search-button" class="btn btn-primary">Cari</button>
         <button id="reset-button" class="btn btn-secondary">Reset</button>
+
+        <select id="filter-jenis-jalan" class="select select-bordered w-full max-w-xs">
+            <option value="">Semua Jenis Jalan</option>
+            <option value="1">Desa</option>
+            <option value="2">Kabupaten</option>
+            <option value="3">Provinsi</option>
+        </select>
+        <select id="filter-kondisi-jalan" class="select select-bordered w-full max-w-xs">
+            <option value="">Semua Kondisi Jalan</option>
+            <option value="1">Baik</option>
+            <option value="2">Sedang</option>
+            <option value="3">Rusak</option>
+        </select>
+
     </div>
 
     <div class="legend-container">
@@ -357,6 +376,56 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+
+function handleDeleteButton(id) {
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: "Anda tidak akan dapat mengembalikan ini!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`${api_main_url}ruasjalan/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    Swal.fire(
+                        'Terhapus!',
+                        'Data ruas jalan telah dihapus.',
+                        'success'
+                    );
+                    fetchPolylineData(''); // Refresh data setelah penghapusan
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire(
+                        'Error!',
+                        'Terjadi kesalahan saat menghapus data.',
+                        'error'
+                    );
+                });
+            }
+        });
+    }
+
+    function generatePolylineDetailUrl(id) {
+        return `${window.location.origin}/polyline/${id}`;
+    }
+    
 document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -404,6 +473,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     L.control.layers(baseLayers).addTo(map);
 
+    function getNamaLokasi(desa_id) {
+        const desa = desaData.find(d => d.id === desa_id);
+        if (!desa) return "Tidak diketahui";
+        
+        const kecamatan = kecamatanData.find(k => k.id === desa.kecamatan_id);
+        const kabupaten = kabupatenData.find(k => k.id === kecamatan?.kabupaten_id);
+        const region = regionData.find(r => r.id === kabupaten?.region_id);
+
+        return `${desa.desa}, ${kecamatan?.kecamatan || ''}, ${kabupaten?.kabupaten || ''}, ${region?.region || ''}`;
+    }
+
     function fetchDesaData() {
         return fetch(`${api_main_url}mdesa`, {
             headers: {
@@ -415,8 +495,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return response.json();
         })
         .then(data => {
-            console.log('Desa:', data.desa);
+            console.log('Desa data received:', data);
             desaData = data.desa;
+            return desaData;
         })
         .catch(error => {
             console.error('Error fetching desa:', error);
@@ -500,12 +581,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getNamaLokasi(desa_id) {
-        const desa = desaData.find(d => d.id === desa_id);
-        if (!desa) return "Tidak diketahui";
+        console.log('Searching for desa_id:', desa_id);
+        console.log('Available desa data:', desaData);
+
+        const desa = desaData.find(d => {
+            console.log('Comparing with:', d.id, typeof d.id);
+            return d.id === parseInt(desa_id, 10);
+        });
+
+        if (!desa) {
+            console.log('Desa not found');
+            return "Tidak diketahui";
+        }
         
+        console.log('Found desa:', desa);
+
         const kecamatan = kecamatanData.find(k => k.id === desa.kecamatan_id);
+        console.log('Found kecamatan:', kecamatan);
+
         const kabupaten = kabupatenData.find(k => k.id === kecamatan?.kabupaten_id);
+        console.log('Found kabupaten:', kabupaten);
+
         const region = regionData.find(r => r.id === kabupaten?.region_id);
+        console.log('Found region:', region);
 
         return `${desa.desa}, ${kecamatan?.kecamatan || ''}, ${kabupaten?.kabupaten || ''}, ${region?.region || ''}`;
     }
@@ -520,12 +618,11 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchEksistingData(), 
         fetchKecamatanData(), 
         fetchKabupatenData(), 
-        fetchRegionData(),
-        fetchRegionData() // Tambahkan ini untuk mendapatkan data lengkap region
+        fetchRegionData()
     ])
-    .then(([desaData, eksistingData, kecamatanData, kabupatenData, regionData, fullRegionData]) => {
-        // Simpan data region lengkap
-        window.fullRegionData = fullRegionData;
+    .then(([desaData, eksistingData, kecamatanData, kabupatenData, regionData]) => {
+        console.log('All data loaded');
+        // Panggil fungsi untuk menampilkan polyline di sini
         fetchPolylineData('');
     })
     .catch(error => {
@@ -605,12 +702,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p><strong>Lebar:</strong> ${polyline.lebar} m</p>
                     <p><strong>Kondisi:</strong> ${polyline.kondisi_id === 1 ? 'Baik' : polyline.kondisi_id === 2 ? 'Sedang' : 'Rusak'}</p>
                     <p><strong>Jenis Jalan:</strong> ${polyline.jenisjalan_id === 1 ? 'Desa' : polyline.jenisjalan_id === 2 ? 'Kabupaten' : 'Provinsi'}</p>
-                    <p><strong>Lokasi:</strong> ${getNamaLokasi(polyline.desa_id, window.fullRegionData)}</p>
+                    <p><strong>Lokasi:</strong> ${getNamaLokasi(polyline.desa_id)}</p>
                     <p><strong>Eksisting:</strong> ${getNamaEksisting(polyline.eksisting_id)}</p>
                 </div>
                 <div class="popup-actions">
-                    <a href="/polyline/${polyline.id}/edit?previous=home" class="btn btn-primary">Edit</a>
-                    <button onclick="handleDeleteButton(${polyline.id})" class="btn btn-error">Delete</button>
+                    
+                    <a href="${generatePolylineDetailUrl(polyline.id)}" class="btn btn-warning text-white">Detail</a>
+            
+                    <a href="/polyline/${polyline.id}/edit?previous=home" class="btn btn-accent text-white">Edit</a>
+                    
+                    <button onclick="window.handleDeleteButton(${polyline.id})" class="btn btn-error">Delete</button>
                 </div>
             </div>
         </div>
@@ -649,99 +750,70 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function fetchPolylineData(filterType, searchValue = '') {
+    function fetchPolylineData(filterType, searchValue = '', jenisJalan = '', kondisiJalan = '') {
+        console.log('Fetching data with:', { filterType, searchValue, jenisJalan, kondisiJalan });
+
         fetch(`${api_main_url}ruasjalan`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
             }
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
-            if (!data.ruasjalan || !Array.isArray(data.ruasjalan)) {
-                throw new Error('Data ruasjalan is not an array');
-            }
-            const filteredData = data.ruasjalan.filter(road => 
+            console.log('Received data:', data.ruasjalan);
+
+            let filteredData = data.ruasjalan.filter(road => 
                 road.nama_ruas.toLowerCase().includes(searchValue.toLowerCase())
             );
+
+            console.log('After nama_ruas filter:', filteredData);
+
+            if (jenisJalan) {
+                filteredData = filteredData.filter(road => road.jenisjalan_id.toString() === jenisJalan);
+                console.log('After jenis jalan filter:', filteredData);
+            }
+
+            if (kondisiJalan) {
+                filteredData = filteredData.filter(road => road.kondisi_id.toString() === kondisiJalan);
+                console.log('After kondisi jalan filter:', filteredData);
+            }
+
             drawPolylines(filteredData, filterType, searchValue !== '');
         })
         .catch(error => {
             console.error('Error fetching polyline data:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Terjadi kesalahan saat mengambil data. Silakan coba lagi.',
-                confirmButtonColor: '#4caf50',
-            });
-        });
-    }
-
-    function handleDeleteButton(id) {
-        Swal.fire({
-            title: 'Apakah Anda yakin?',
-            text: "Anda tidak akan dapat mengembalikan ini!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Ya, hapus!',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                fetch(`${api_main_url}ruasjalan/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    Swal.fire(
-                        'Terhapus!',
-                        'Data ruas jalan telah dihapus.',
-                        'success'
-                    );
-                    fetchPolylineData(''); // Refresh data setelah penghapusan
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    Swal.fire(
-                        'Error!',
-                        'Terjadi kesalahan saat menghapus data.',
-                        'error'
-                    );
-                });
-            }
         });
     }
 
     const filterSelect = document.getElementById('filter');
+    const searchInput = document.getElementById('search-input');
+    const filterJenisJalan = document.getElementById('filter-jenis-jalan');
+    const filterKondisiJalan = document.getElementById('filter-kondisi-jalan');
+
+    filterJenisJalan.addEventListener('change', () => {
+        fetchPolylineData(filterSelect.value, searchInput.value, filterJenisJalan.value, filterKondisiJalan.value);
+    });
+
+    filterKondisiJalan.addEventListener('change', () => {
+        fetchPolylineData(filterSelect.value, searchInput.value, filterJenisJalan.value, filterKondisiJalan.value);
+    });
+
     filterSelect.addEventListener('change', () => {
-        fetchPolylineData(filterSelect.value);
+        fetchPolylineData(filterSelect.value, searchInput.value, filterJenisJalan.value, filterKondisiJalan.value);
     });
 
     const searchButton = document.getElementById('search-button');
     searchButton.addEventListener('click', () => {
-        const searchInput = document.getElementById('search-input');
-        fetchPolylineData(filterSelect.value, searchInput.value);
+        fetchPolylineData(filterSelect.value, searchInput.value, filterJenisJalan.value, filterKondisiJalan.value);
     });
 
     const resetButton = document.getElementById('reset-button');
     resetButton.addEventListener('click', () => {
-        document.getElementById('search-input').value = '';
+        searchInput.value = '';
         filterSelect.value = '';
-        fetchPolylineData('');
+        filterJenisJalan.value = '';
+        filterKondisiJalan.value = '';
+        fetchPolylineData('', '', '', '');
     });
 
     const toggleSidebarButton = document.getElementById('toggle-sidebar');
@@ -769,7 +841,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Inisialisasi peta dan data
-    fetchPolylineData('');
+    fetchPolylineData('', '', '', '');
 });
 </script>
 @endpush
