@@ -12,15 +12,15 @@
 
     .sidebar {
         position: absolute;
-        top: 100px; /* Sesuaikan dengan kebutuhan Anda */
-        left: 20px; /* Posisikan sidebar di sebelah kiri */
+        top: 150px; /* Sesuaikan dengan kebutuhan Anda */
+        left: 40px; /* Posisikan sidebar di sebelah kiri */
         z-index: 1000;
-        width: 230px; /* Sesuaikan lebar sidebar sesuai kebutuhan Anda */
+        width: 210px; /* Sesuaikan lebar sidebar sesuai kebutuhan Anda */
         background-color: rgba(255, 255, 255, 0.8);
         box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
-        padding: 24px;
+        padding: 10px;
         overflow-y: auto;
-        height: calc(45vh - 180px); /* Mengurangi tinggi sidebar agar tidak menutupi footer */
+        height: calc(vh - 80px); /* Mengurangi tinggi sidebar agar tidak menutupi footer */
         flex-direction: column;
         border-radius: 8px; /* Efek rounded */
     }
@@ -28,11 +28,13 @@
     /* Memastikan konten peta berada di belakang sidebar */
     #map-container {
         position: relative;
+        left: -500px
     }
 
     #map {
         height: calc(100vh - 80px); /* Sesuaikan tinggi peta agar tidak menutupi header */
-        width: 100%;
+        
+        width: 2500px;
         overflow: hidden;
     }
 
@@ -139,7 +141,7 @@
             }
         
             .legend-jenis {
-                right: 20px;
+                right: -980px;
             }
             .legend-container {
                 left: 20px;
@@ -262,48 +264,38 @@
     color: #fff
 }
 
+#tutorialModal {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999; /* Ensure it's above the map */
+}
+
+#tutorialModal .modal-content {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    max-width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+.hidden {
+    display: none !important;
+}
+
+
     </style>
 @endsection
 
 @section('contents')
 <div id="map-container">
     <div id="map"></div>
-    <div class="sidebar" id="sidebar">
-        <div class="header">
-            <span class="description-header"><h1>Menu</h1></span>
-        </div>
-        <div class="main">
-            <div class="list-item">
-                <a href="{{ route('home')}}" class="flex items-center space-x-2 mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                    <span>Dashboard</span>
-                </a>
-                
-                <a href="{{ route('polyline.create', ['previous' => 'home']) }}" class="flex items-center space-x-2 mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                    </svg>
-                    <span>Tambah Ruas Jalan</span>
-                </a>
-            
-                <a href="{{ route('polyline.index') }}" class="flex items-center space-x-2 mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                    </svg>
-                    <span>Data Ruas Jalan</span>
-                </a>
+    
+    <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] flex space-x-2">
 
-                <button onclick="confirmLogout(event)" class="btn btn-error w-full">Logout</button>
-
-
-            
-            </div>
-            
-        </div>
-    </div>
-    <div class="absolute top-4 left-20 z-[1000] flex space-x-2">
         <label for="my-drawer-2" class="btn btn-accent" id="toggle-sidebar">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
@@ -315,22 +307,24 @@
             <option value="jenis">Jenis Jalan</option>
             <option value="kondisi">Kondisi Jalan</option>
         </select>
-        <input type="text" id="search-input" placeholder="Nama Jalan" class="input input-bordered w-full max-w-xs" />
-        <button id="search-button" class="btn btn-primary">Cari</button>
-        <button id="reset-button" class="btn btn-secondary">Reset</button>
-
         <select id="filter-jenis-jalan" class="select select-bordered w-full max-w-xs">
-            <option value="">Semua Jenis Jalan</option>
+            <option value="">Jenis Jalan</option>
             <option value="1">Desa</option>
             <option value="2">Kabupaten</option>
             <option value="3">Provinsi</option>
         </select>
         <select id="filter-kondisi-jalan" class="select select-bordered w-full max-w-xs">
-            <option value="">Semua Kondisi Jalan</option>
+            <option value="">Kondisi Jalan</option>
             <option value="1">Baik</option>
             <option value="2">Sedang</option>
             <option value="3">Rusak</option>
         </select>
+        
+        <input type="text" id="search-input" placeholder="Nama Jalan" class="input input-bordered w-full max-w-xs" />
+        <button id="search-button" class="btn btn-primary">Cari</button>
+        <button id="reset-button" class="btn btn-secondary">Reset</button>
+
+        
 
     </div>
 
@@ -359,6 +353,110 @@
         <span>Provinsi</span>
     </div>
 </div>
+
+<div class="sidebar" id="sidebar">
+    <div class="header">
+        <span class="description-header"><h1>Menu</h1></span>
+    </div>
+    <div class="main flex flex-col h-80">
+        <div class="list-item flex-grow">
+            <a href="{{ route('home')}}" class="flex items-center space-x-2 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span>Dashboard</span>
+            </a>
+            
+            <a href="{{ route('polyline.create', ['previous' => 'home']) }}" class="flex items-center space-x-2 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Tambah Ruas Jalan</span>
+            </a>
+        
+            <a href="{{ route('polyline.index') }}" class="flex items-center space-x-2 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <span>Data Ruas Jalan</span>
+            </a>
+
+            <!-- Add Tutorial button -->
+            <a  href="#tutorialModal" class="sidebar-link">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Tutorial</span>
+            </a>
+
+        </div>
+        
+        <div class="">
+            <button onclick="confirmLogout(event)" class="btn btn-error w-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Logout
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Tutorial -->
+<div id="tutorialModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50  items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl transform transition-all sm:max-w-lg sm:w-full">
+        <div class="p-6">
+            <h3 class="text-2xl font-bold text-gray-900 mb-4">Tutorial Penggunaan Jalanan</h3>
+            <div class="mt-4 text-left">
+                <ol class="list-decimal pl-5 space-y-3 text-gray-700">
+                    <li class="hover:bg-gray-100 p-2 rounded-md transition duration-300">
+                        <strong class="text-primary">Memulai:</strong> Buka halaman home untuk melihat peta interaktif yang menampilkan ruas-ruas jalan.
+                    </li>
+                    <li class="hover:bg-gray-100 p-2 rounded-md transition duration-300">
+                        <strong class="text-primary">Navigasi Peta:</strong> Gunakan mouse untuk menggeser peta dan roda mouse untuk zoom.
+                    </li>
+                    <li class="hover:bg-gray-100 p-2 rounded-md transition duration-300">
+                        <strong class="text-primary">Mengubah Tampilan Peta:</strong> Klik ikon berlapis di pojok kanan atas untuk memilih jenis peta.
+                    </li>
+                    <li class="hover:bg-gray-100 p-2 rounded-md transition duration-300">
+                        <strong class="text-primary">Menggunakan Sidebar:</strong> Klik tombol toggle sidebar di pojok kiri atas untuk membuka/menutup sidebar.
+                    </li>
+                    <li class="hover:bg-gray-100 p-2 rounded-md transition duration-300">
+                        <strong class="text-primary">Mencari Ruas Jalan:</strong> Gunakan kotak pencarian di atas peta untuk mencari jalan.
+                    </li>
+                    <li class="hover:bg-gray-100 p-2 rounded-md transition duration-300">
+                        <strong class="text-primary">Memfilter Ruas Jalan:</strong> Gunakan dropdown filter untuk menyaring jalan berdasarkan jenis atau kondisi.
+                    </li>
+                    <li class="hover:bg-gray-100 p-2 rounded-md transition duration-300">
+                        <strong class="text-primary">Melihat Informasi Ruas Jalan:</strong> Klik pada garis jalan di peta untuk membuka popup informasi.
+                    </li>
+                    <li class="hover:bg-gray-100 p-2 rounded-md transition duration-300">
+                        <strong class="text-primary">Menggunakan Tombol Aksi:</strong> Gunakan tombol Detail, Edit, atau Delete pada popup untuk mengelola data jalan.
+                    </li>
+                    <li class="hover:bg-gray-100 p-2 rounded-md transition duration-300">
+                        <strong class="text-primary">Menambah Ruas Jalan Baru:</strong> Klik "Tambah Ruas Jalan" di sidebar.
+                    </li>
+                    <li class="hover:bg-gray-100 p-2 rounded-md transition duration-300">
+                        <strong class="text-primary">Melihat Legenda:</strong> Lihat legenda di pojok kiri dan kanan bawah peta.
+                    </li>
+                    <li class="hover:bg-gray-100 p-2 rounded-md transition duration-300">
+                        <strong class="text-primary">Reset Tampilan:</strong> Klik tombol "Reset" untuk menghapus semua filter dan pencarian.
+                    </li>
+                    <li class="hover:bg-gray-100 p-2 rounded-md transition duration-300">
+                        <strong class="text-primary">Logout:</strong> Klik tombol "Logout" di bagian bawah sidebar untuk keluar.
+                    </li>
+                </ol>
+            </div>
+            <div class="mt-6">
+                <button id="closeTutorial" class="btn btn-primary w-full">
+                    Tutup Tutorial
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 @endsection
 
 @push('javascript')
@@ -374,57 +472,208 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-geometryutil@0.0.2/dist/leaflet.geometryutil.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM fully loaded and parsed');
+    const closeTutorialButton = document.getElementById('closeTutorial');
+    const tutorialLink = document.querySelector('a[href="#tutorialModal"]');
+    const tutorialModal = document.getElementById('tutorialModal');
 
-function handleDeleteButton(id) {
-        Swal.fire({
-            title: 'Apakah Anda yakin?',
-            text: "Anda tidak akan dapat mengembalikan ini!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Ya, hapus!',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                fetch(`${api_main_url}ruasjalan/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    Swal.fire(
-                        'Terhapus!',
-                        'Data ruas jalan telah dihapus.',
-                        'success'
-                    );
-                    fetchPolylineData(''); // Refresh data setelah penghapusan
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    Swal.fire(
-                        'Error!',
-                        'Terjadi kesalahan saat menghapus data.',
-                        'error'
-                    );
-                });
+    // Pastikan tutorial tidak muncul otomatis
+    if (tutorialModal) {
+        tutorialModal.classList.add('hidden');
+    }
+
+    if (closeTutorialButton) {
+        closeTutorialButton.addEventListener('click', function(event) {
+            event.preventDefault();
+            console.log('Close button clicked');
+            closeTutorial();
+        });
+    } else {
+        console.error('Close tutorial button not found');
+    }
+
+    if (tutorialLink) {
+        tutorialLink.addEventListener('click', function(event) {
+            event.preventDefault();
+            console.log('Tutorial link clicked');
+            showTutorial();
+        });
+    }
+
+    // Tambahkan event listener untuk menutup modal saat mengklik di luar modal
+    if (tutorialModal) {
+        tutorialModal.addEventListener('click', function(event) {
+            if (event.target === tutorialModal) {
+                console.log('Modal background clicked');
+                closeTutorial();
             }
         });
     }
+});
+
+function showTutorial() {
+    console.log('Showing tutorial');
+    const tutorialModal = document.getElementById('tutorialModal');
+    if (tutorialModal) {
+        tutorialModal.classList.remove('hidden');
+        tutorialModal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeTutorial() {
+    console.log('Closing tutorial');
+    const tutorialModal = document.getElementById('tutorialModal');
+    if (tutorialModal) {
+        tutorialModal.classList.add('hidden');
+        tutorialModal.classList.remove('flex');
+        document.body.style.overflow = '';
+    }
+}
+</script>
+
+<script>
+let polylineReferences = new Map();
+
+function fetchPolylineData(filterType, searchValue = '', jenisJalan = '', kondisiJalan = '') {
+    console.log('Fetching data with:', { filterType, searchValue, jenisJalan, kondisiJalan });
+
+    fetch(`${api_main_url}ruasjalan`, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Received data:', data.ruasjalan);
+
+        let filteredData = data.ruasjalan.filter(road => 
+            road.nama_ruas.toLowerCase().includes(searchValue.toLowerCase())
+        );
+
+        if (jenisJalan) {
+            filteredData = filteredData.filter(road => road.jenisjalan_id.toString() === jenisJalan);
+        }
+
+        if (kondisiJalan) {
+            filteredData = filteredData.filter(road => road.kondisi_id.toString() === kondisiJalan);
+        }
+
+        // Hapus polyline yang tidak ada lagi dalam data
+        polylineReferences.forEach((polyline, id) => {
+            if (!filteredData.some(road => road.id === id)) {
+                map.removeLayer(polyline);
+                polylineReferences.delete(id);
+            }
+        });
+
+        drawPolylines(filteredData, filterType, searchValue !== '');
+    })
+    .catch(error => {
+        console.error('Error fetching polyline data:', error);
+    });
+}
+
+function deletePolyline(id) {
+    const token = localStorage.getItem('token');
+    const api_main_url = localStorage.getItem('api_main_url');
+    
+    if (!token || !api_main_url) {
+        console.error('Token or API URL not found');
+        return;
+    }
+
+    const url = `${api_main_url}ruasjalan/${id}`;
+    
+    fetch(url, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Delete response:', data);
+        
+        if (data.status === 'failed') {
+            throw new Error(data.message || 'Gagal menghapus ruas jalan');
+        }
+
+        // Hapus polyline dan elemen terkait dari peta
+        if (polylineReferences.has(id)) {
+            const polyline = polylineReferences.get(id);
+            if (map && typeof map.removeLayer === 'function') {
+                map.removeLayer(polyline);
+                
+                // Hapus marker dan label terkait
+                map.eachLayer(layer => {
+                    if (layer instanceof L.Marker || (layer instanceof L.Marker && layer.options.icon instanceof L.DivIcon)) {
+                        map.removeLayer(layer);
+                    }
+                });
+            }
+            polylineReferences.delete(id);
+        }
+
+        Swal.fire(
+            'Terhapus!',
+            'Data telah berhasil dihapus.',
+            'success'
+        );
+
+        // Refresh data setelah penghapusan
+        fetchPolylineData('', '', '', '');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire(
+            'Error!',
+            error.message || 'Terjadi kesalahan saat menghapus data.',
+            'error'
+        );
+    });
+}
+
+// Pastikan window.handleDeleteButton juga didefinisikan di scope yang tepat
+window.handleDeleteButton = function(id) {
+    Swal.fire({
+        title: 'Apakah Anda yakin?',
+        text: "Anda tidak akan dapat mengembalikan ini!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya, hapus!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            deletePolyline(id);
+        }
+    });
+}
+
+function clearMap() {
+    map.eachLayer(layer => {
+        if (layer instanceof L.Polyline || layer instanceof L.Marker) {
+            map.removeLayer(layer);
+        }
+    });
+}
 
     function generatePolylineDetailUrl(id) {
         return `${window.location.origin}/polyline/${id}`;
     }
+
+let api_main_url;
+let token;
     
 document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('token');
@@ -442,6 +691,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentMarkers = [];
 
     var map = L.map('map').setView([-8.65, 115.22], 9.5);
+
+    window.map = map;
 
     const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 20,
@@ -630,8 +881,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function drawPolylines(polylineData, filterType, isSearching) {
+        // clearMap();
         const searchInput = document.getElementById('search-input').value.trim().toLowerCase();
         let polylineFound = false;
+
+        window.map.eachLayer(layer => {
+            if (layer instanceof L.Polyline || layer instanceof L.Marker) {
+                window.map.removeLayer(layer);
+            }
+        });
 
         const startIcon = L.divIcon({
             className: 'custom-div-icon',
@@ -677,7 +935,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const line = L.polyline(coordinates, { color }).addTo(map);
-
+            polylineReferences.set(polyline.id, line);
             const midpoint = coordinates[Math.floor(coordinates.length / 2)];
             const label = L.divIcon({
                 className: 'polyline-label',
@@ -702,7 +960,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p><strong>Lebar:</strong> ${polyline.lebar} m</p>
                     <p><strong>Kondisi:</strong> ${polyline.kondisi_id === 1 ? 'Baik' : polyline.kondisi_id === 2 ? 'Sedang' : 'Rusak'}</p>
                     <p><strong>Jenis Jalan:</strong> ${polyline.jenisjalan_id === 1 ? 'Desa' : polyline.jenisjalan_id === 2 ? 'Kabupaten' : 'Provinsi'}</p>
-                    <p><strong>Lokasi:</strong> ${getNamaLokasi(polyline.desa_id)}</p>
+                    
                     <p><strong>Eksisting:</strong> ${getNamaEksisting(polyline.eksisting_id)}</p>
                 </div>
                 <div class="popup-actions">
@@ -711,7 +969,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
                     <a href="/polyline/${polyline.id}/edit?previous=home" class="btn btn-accent text-white">Edit</a>
                     
-                    <button onclick="window.handleDeleteButton(${polyline.id})" class="btn btn-error">Delete</button>
+                    <button onclick="handleDeleteButton(${polyline.id})" class="btn btn-error">Delete</button>
                 </div>
             </div>
         </div>
@@ -822,23 +1080,52 @@ document.addEventListener('DOMContentLoaded', () => {
         sidebar.classList.toggle('open');
     });
 
+    // function confirmLogout(event) {
+    //     event.preventDefault();
+    //     Swal.fire({
+    //         title: 'Apakah Anda yakin ingin keluar?',
+    //         text: "Anda akan keluar dari sesi ini.",
+    //         icon: 'warning',
+    //         showCancelButton: true,
+    //         confirmButtonColor: '#3085d6',
+    //         cancelButtonColor: '#d33',
+    //         confirmButtonText: 'Ya, keluar!',
+    //         cancelButtonText: 'Batal'
+    //     }).then((result) => {
+    //         if (result.isConfirmed) {
+    //             document.getElementById('logoutForm').submit();
+    //         }
+    //     });
+    // }
+
     function confirmLogout(event) {
-        event.preventDefault();
-        Swal.fire({
-            title: 'Apakah Anda yakin ingin keluar?',
-            text: "Anda akan keluar dari sesi ini.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Ya, keluar!',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('logoutForm').submit();
+    event.preventDefault(); // Menghentikan aksi default tombol
+    
+    if (confirm('Are you sure you want to logout?')) {
+        // Lakukan logout
+        fetch('/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                // Jangan lupa sertakan token jika diperlukan
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
+            },
+            body: JSON.stringify({}) // Data tambahan jika diperlukan
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Logout failed.');
             }
+            // Bersihkan token dan arahkan ke halaman login
+            localStorage.removeItem('token');
+            window.location.href = '/login'; // Ganti sesuai dengan rute login Anda
+        })
+        .catch(error => {
+            console.error('Logout error:', error);
+            // Handle error
         });
     }
+}
 
     // Inisialisasi peta dan data
     fetchPolylineData('', '', '', '');

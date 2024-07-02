@@ -218,6 +218,17 @@
             </div>
         </div>
     </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-accent">Total Jalan</h2>
+            <div class="stat">
+                <div class="stat-title">Jumlah Ruas</div>
+                <div class="stat-value">0</div>
+                <div class="stat-desc">ruas</div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="mb-4 flex justify-between">
@@ -300,6 +311,16 @@
 
 
 @push('javascript')
+
+{{-- <script>
+
+const totalJalan = 0;
+            ruasJalan.forEach(ruaS=>{
+                totalJalan++;
+
+            })
+console.log('Total Jalan :' totalJalan);
+</script> --}}
 <script>
     localStorage.setItem("token", "{{ session('token') }}");
     localStorage.setItem("api_main_url", "https://gisapis.manpits.xyz/api/");
@@ -312,6 +333,7 @@ crossorigin=""></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-geometryutil@0.0.2/dist/leaflet.geometryutil.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
     $(document).ready(function() {
         @if (session('success'))
@@ -348,16 +370,23 @@ document.addEventListener('DOMContentLoaded', async function () {
     const token = localStorage.getItem("token");
     const api_main_url = localStorage.getItem("api_main_url");
     const kondisiLabels = {
-                1: 'Rusak',
-                2: 'Sedang',
-                3: 'Baik'
-            };
+        1: 'Baik',
+        2: 'Sedang',
+        3: 'Rusak'
+    };
 
     const jenisJalanLabels = {
-        1: 'Provinsi',
+        1: 'Desa',
         2: 'Kabupaten',
-        3: 'Desa'
+        3: 'Provinsi'
     };
+
+    const searchInput = document.getElementById('searchInput');
+    const sortSelect = document.getElementById('sortSelect');
+
+    searchInput.addEventListener('input', handleSearchAndSort);
+    sortSelect.addEventListener('change', handleSearchAndSort);
+
     if (!token || !api_main_url) {
         console.error('Token or API URL is missing');
         return;
@@ -367,7 +396,13 @@ document.addEventListener('DOMContentLoaded', async function () {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json"
     };
+
     let charts = {};
+    let globalRuasJalanData;
+    let globalEksistingMap;
+    let globalJenisJalanMap;
+    let globalKondisiMap;
+
     function createChart(id, type, data, title) {
         const ctx = document.getElementById(id).getContext('2d');
         
@@ -377,11 +412,12 @@ document.addEventListener('DOMContentLoaded', async function () {
         
         let labels, values;
         if (id === 'kondisiChart' || id === 'panjangChart') {
-            labels = Object.keys(data).map(key => kondisiLabels[key] || `Unknown (${key})`);
+            labels = ['Baik', 'Sedang', 'Rusak'];
+            values = [data[1] || 0, data[2] || 0, data[3] || 0];
         } else if (id === 'jenisChart') {
-            labels = Object.keys(data).map(key => jenisJalanLabels[key] || `Unknown (${key})`);
+            labels = ['Desa', 'Kabupaten', 'Provinsi'];
+            values = [data[1] || 0, data[2] || 0, data[3] || 0];
         }
-        values = Object.values(data);
 
         charts[id] = new Chart(ctx, {
             type: type,
@@ -390,7 +426,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 datasets: [{
                     label: title,
                     data: values,
-                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
+                    backgroundColor: ['#4BC0C0', '#FFCE56', '#FF6384'],
                     borderColor: '#36A2EB',
                     tension: 0.1
                 }]
@@ -418,7 +454,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     async function fetchData(endpoint) {
         try {
             const response = await axios.get(api_main_url + endpoint, { headers });
-            console.log(`Response for ${endpoint}:`, response.data); // Log the response
+            console.log(`Response for ${endpoint}:`, response.data);
             return response.data;
         } catch (error) {
             console.error(`Error fetching ${endpoint} data:`, error);
@@ -447,21 +483,27 @@ document.addEventListener('DOMContentLoaded', async function () {
         }, {});
     }
 
-    function updateInsight(kondisiCounts, jenisCounts, totalPanjang) {
-        document.querySelector('.stat-value.text-error').textContent = (kondisiCounts[1] || 0).toString();  // Rusak
-        document.querySelector('.stat-value.text-warning').textContent = (kondisiCounts[2] || 0).toString();  // Sedang
-        document.querySelector('.stat-value.text-success').textContent = (kondisiCounts[3] || 0).toString();  // Baik
+    function updateInsight(kondisiCounts, jenisCounts, totalPanjang, totalJalan) {
+        document.querySelector('.stat-value.text-success').textContent = (kondisiCounts[1] || 0).toString();
+        document.querySelector('.stat-value.text-warning').textContent = (kondisiCounts[2] || 0).toString();
+        document.querySelector('.stat-value.text-error').textContent = (kondisiCounts[3] || 0).toString();
 
         const statsElements = document.querySelectorAll('.card:nth-child(2) .card-body .stats .stat');
         if (statsElements.length >= 3) {
-            statsElements[0].querySelector('.stat-value').textContent = (jenisCounts[1] || 0).toString();  // Provinsi
-            statsElements[1].querySelector('.stat-value').textContent = (jenisCounts[2] || 0).toString();  // Kabupaten
-            statsElements[2].querySelector('.stat-value').textContent = (jenisCounts[3] || 0).toString();  // Desa
+            statsElements[0].querySelector('.stat-value').textContent = (jenisCounts[3] || 0).toString();
+            statsElements[1].querySelector('.stat-value').textContent = (jenisCounts[2] || 0).toString();
+            statsElements[2].querySelector('.stat-value').textContent = (jenisCounts[1] || 0).toString();
         }
 
         const totalPanjangElement = document.querySelector('.card:nth-child(3) .card-body .stat .stat-value');
         if (totalPanjangElement) {
             totalPanjangElement.textContent = totalPanjang.toFixed(2);
+        }
+
+
+        const totalJalanElement = document.querySelector('.card:nth-child(4) .card-body .stat .stat-value');
+        if (totalJalanElement) {
+            totalJalanElement.textContent = totalJalan.toString();
         }
     }
 
@@ -481,12 +523,11 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
 
             const ruasJalan = ruasJalanData.ruasjalan;
-            const eksistingMap = new Map(eksistingData?.eksisting?.map(item => [item.id, item.eksisting]) || []);
-            const kondisiMap = new Map(kondisiData?.kondisi?.map(item => [item.id, item.kondisi]) || []);
-            const jenisJalanMap = new Map(jenisJalanData?.jenisjalan?.map(item => [item.id, item.jenisjalan]) || []);
+            globalEksistingMap = new Map(eksistingData?.eksisting?.map(item => [item.id, item.eksisting]) || []);
+            globalKondisiMap = new Map(kondisiData?.kondisi?.map(item => [item.id, item.kondisi]) || []);
+            globalJenisJalanMap = new Map(jenisJalanData?.jenisjalan?.map(item => [item.id, item.jenisjalan]) || []);
             
-
-            console.log('Processed maps:', { eksistingMap, jenisJalanMap, kondisiMap });
+            console.log('Processed maps:', { globalEksistingMap, globalJenisJalanMap, globalKondisiMap });
 
             const kondisiCounts = groupById(ruasJalan, 'kondisi_id');
             const jenisCounts = groupById(ruasJalan, 'jenisjalan_id');
@@ -495,14 +536,17 @@ document.addEventListener('DOMContentLoaded', async function () {
             console.log('Grouped data:', { kondisiCounts, jenisCounts, panjangPerKondisi });
 
             const totalPanjang = ruasJalan.reduce((total, item) => total + (parseFloat(item.panjang || 0) / 1000), 0);
+            const totalJalan = ruasJalan.length;
+            
 
-            updateInsight(kondisiCounts, jenisCounts, totalPanjang);
+            updateInsight(kondisiCounts, jenisCounts, totalPanjang, totalJalan);
 
             createChart('kondisiChart', 'pie', kondisiCounts, 'Distribusi Kondisi Jalan');
             createChart('jenisChart', 'bar', jenisCounts, 'Jumlah Jalan per Jenis');
             createChart('panjangChart', 'line', panjangPerKondisi, 'Panjang Jalan per Kondisi');
 
-            updateTable(ruasJalan, eksistingMap, jenisJalanMap, kondisiMap);
+            globalRuasJalanData = ruasJalan;
+            handleSearchAndSort();
 
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -510,11 +554,83 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
     }
 
-    function updateTable(ruasJalanData, eksistingMap, jenisJalanMap, kondisiMap) {
-        const tableBody = document.getElementById('polylineTableBody');
-        tableBody.innerHTML = ''; // Clear existing rows
 
-        ruasJalanData.forEach((polyline, index) => {
+
+    function handleSearchAndSort() {
+        if (!globalRuasJalanData) return;
+
+        const searchValue = searchInput.value.toLowerCase();
+        const sortBy = sortSelect.value;
+
+        let filteredData = globalRuasJalanData.filter(polyline => 
+            polyline.nama_ruas.toLowerCase().includes(searchValue)
+        );
+
+        if (sortBy) {
+            filteredData.sort((a, b) => {
+                if (a[sortBy] < b[sortBy]) return -1;
+                if (a[sortBy] > b[sortBy]) return 1;
+                return 0;
+            });
+        }
+
+        updateTable(filteredData);
+    }
+
+
+    function deletePolyline(id) {
+        Swal.fire({
+            title: 'Yakin mau dihapus?',
+            text: "Kalau dihapu tidak bisa balik lagi loh!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                axios.delete(`${api_main_url}ruasjalan/${id}`, {
+                    headers: {
+                        "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                        "Content-Type": "application/json"
+                    }
+                })
+                .then(response => {
+                    Swal.fire(
+                        'Terhapus!',
+                        'Data berhasil dihapus.',
+                        'success'
+                    );
+                    // Refresh data or remove row from table
+                    fetchRuasJalan();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire(
+                        'Error!',
+                        'Data Gagal dihapus.',
+                        'error'
+                    );
+                });
+            }
+        });
+    }
+
+    // Add this function to handle click events on delete buttons
+    function handleDeleteClick(e) {
+        if (e.target && e.target.classList.contains('btn-delete')) {
+            e.preventDefault();
+            const id = e.target.getAttribute('data-id');
+            deletePolyline(id);
+        }
+    }
+
+
+    function updateTable(filteredData) {
+        const tableBody = document.getElementById('polylineTableBody');
+        tableBody.innerHTML = '';
+
+        filteredData.forEach((polyline, index) => {
             const row = document.createElement('tr');
             row.className = 'hover:bg-gray-100';
             row.innerHTML = `
@@ -523,31 +639,32 @@ document.addEventListener('DOMContentLoaded', async function () {
                 <td class="p-2 text-center truncate" title="${polyline.paths}">${polyline.paths.substring(0, 30)}...</td>
                 <td class="p-2 text-center">${polyline.panjang}</td>
                 <td class="p-2 text-center">${polyline.lebar}</td>
-                <td class="p-2 text-center">${eksistingMap.get(polyline.eksisting_id) || 'N/A'}</td>
-                <td class="p-2 text-center">${kondisiMap.get(polyline.kondisi_id) || kondisiLabels[polyline.kondisi_id] || 'N/A'}</td>
-                <td class="p-2 text-center">${jenisJalanMap.get(polyline.jenisjalan_id) || jenisJalanLabels[polyline.jenisjalan_id] || 'N/A'}</td>
+                <td class="p-2 text-center">${globalEksistingMap.get(polyline.eksisting_id) || 'N/A'}</td>
+                <td class="p-2 text-center">${globalKondisiMap.get(polyline.kondisi_id) || kondisiLabels[polyline.kondisi_id] || 'N/A'}</td>
+                <td class="p-2 text-center">${globalJenisJalanMap.get(polyline.jenisjalan_id) || jenisJalanLabels[polyline.jenisjalan_id] || 'N/A'}</td>
                 <td class="p-2 text-center">${polyline.keterangan}</td>
                 <td class="p-2 text-center flex justify-center space-x-2">
-                    <a href="/polyline/detail/${polyline.id}" class="btn btn-warning btn-xs">Detail</a>
-                    <a href="/polyline/edit/${polyline.id}?previous=index" class="btn btn-accent btn-xs">Edit</a>
-                    <button type="button" class="btn btn-error btn-xs btn-delete" data-id="${polyline.id}">Delete</button>
+                    <a href="/polyline/${polyline.id}" class="btn btn-warning btn-xs">Detail</a>
+
+                    <a href="/polyline/${polyline.id}/edit" class="btn btn-accent btn-xs">Edit</a>
+
+                    <button type="button" class="btn btn-error btn-xs btn-delete" data-id="{{ $polyline['id'] }}">Delete</button>
                 </td>
             `;
             tableBody.appendChild(row);
+
+            
+        });
+        const deleteButtons = tableBody.querySelectorAll('.btn-delete');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', handleDeleteClick);
         });
     }
 
-    let fetchRuasJalanCalled = false;
-
-    async function initializeData() {
-        if (!fetchRuasJalanCalled) {
-            fetchRuasJalanCalled = true;
-            await fetchRuasJalan();
-        }
-    }
     await fetchRuasJalan();
-    await initializeData();
-    
+
+
+
 });
 </script>
 @endpush

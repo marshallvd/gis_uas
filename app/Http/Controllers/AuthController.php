@@ -17,6 +17,8 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
+    protected $apiUrl = 'https://gisapis.manpits.xyz/api';
+
     public function showLoginForm(Request $request)
     {
         $status = $request->session()->get('status');
@@ -30,100 +32,119 @@ class AuthController extends Controller
 
     public function registerSave(Request $request)
     {
-        // Validate incoming request data
-        $data = $request->validate([
+        Log::info('Register attempt', $request->all());
+
+        $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email',
+            'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:8|confirmed'
         ]);
-    
+
+        if ($validator->fails()) {
+            Log::warning('Register validation failed', $validator->errors()->toArray());
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
         try {
-            // Create a new User record using the validated data
-            $user = User::create([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'password' => Hash::make($data['password']),
-                'level' => 'Admin' // Example: Assigning a default level
+            $response = Http::post($this->apiUrl . '/register', [
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => $request->password,
             ]);
-    
-            // If user creation is successful, redirect to login page with success message
-            return redirect()->route('login')->with('status', 'Registration successful! Please login.');
+
+            $responseData = $response->json();
+            Log::info('API response', $responseData);
+
+            if ($response->successful()) {
+                if (isset($responseData['meta']['token'])) {
+                    session(['token' => $responseData['meta']['token']]);
+                }
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Registration successful! Please login.',
+                    'redirect' => route('login')
+                ]);
+            } else {
+                $errorMessage = $responseData['message'] ?? 'Unknown error occurred';
+                throw new \Exception('API Registration failed: ' . $errorMessage);
+            }
         } catch (\Exception $e) {
-            // If any exception occurs during user creation, redirect back with error message
-            return redirect()->back()->withErrors(['registration' => 'Registration failed: ' . $e->getMessage()]);
+            Log::error('Registration error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Registration failed: ' . $e->getMessage()
+            ], 422);
         }
     }
-    
+
     public function login(Request $request)
     {
-        $data = Validator::make($request->all(), [
+        $request->validate([
             'email' => 'required|email',
             'password' => 'required|string|min:8'
-        ])->validate();
-    
-        if (!Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
-            throw ValidationException::withMessages([
-                'email' => trans('auth.failed')
-            ]);
-        }
-    
-        $request->session()->regenerate();
+        ]);
 
         try {
-            $client = new Client();
-            $response = $client->post('https://gisapis.manpits.xyz/api/login', [
-                'json' => $data,
+            $response = Http::post($this->apiUrl . '/login', [
+                'email' => $request->email,
+                'password' => $request->password,
             ]);
 
-            $body = $response->getBody();
-            $content = $body->getContents();
-            $responseData = json_decode($content, true);
+            $responseData = $response->json();
 
-            if (isset($responseData['meta']['token'])) {
+            if ($response->successful() && isset($responseData['meta']['token'])) {
                 session(['token' => $responseData['meta']['token']]);
-                return redirect()->route('dashboard')->with('status', 'Login successful! Welcome.');
+                session(['user' => $responseData['data'] ?? null]); // Simpan data user jika ada
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Login successful! Welcome.',
+                    'redirect' => route('dashboard') // Gunakan route() helper
+                ]);
             } else {
-                return redirect()->back()->withErrors(['login' => 'Failed to get token from API response.']);
+                throw new \Exception('Invalid credentials or failed to get token from API response.');
             }
-        } catch (RequestException $e) {
-            if ($e->hasResponse()) {
-                $response = $e->getResponse();
-                $content = $response->getBody()->getContents();
-                return redirect()->back()->withErrors(['login' => 'Failed to login.']);
-            } else {
-                return redirect()->back()->withErrors(['login' => 'Failed to connect to the server.']);
-            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Login failed: ' . $e->getMessage()
+            ], 422);
         }
     }
 
     public function logout(Request $request)
-    {
+{
+    Log::info('Logout attempt');
+    try {
         $token = session('token');
-    
-        if ($token) {
-            try {
-                $client = new Client();
-                $response = $client->post('https://gisapis.manpits.xyz/api/logout', [
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . $token,
-                    ],
-                ]);
-            } catch (RequestException $e) {
-                if ($e->hasResponse() && $e->getResponse()->getStatusCode() == 402) {
-                    Log::error('API Subscription Issue: ' . $e->getMessage());
-                } else {
-                    Log::error('Error during logout: ' . $e->getMessage());
-                }
-            }
+        if (!$token) {
+            throw new \Exception('No token found');
         }
-    
-        Auth::guard('web')->logout();
+
+        // Uncomment baris di bawah ini jika Anda benar-benar perlu memanggil API eksternal
+        // $response = Http::withToken($token)->post($this->apiUrl . '/logout');
+
+        // Hapus token dari session
+        $request->session()->forget('token');
+        $request->session()->forget('user');
+        
+        // Invalidate dan regenerate session
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        session()->forget('token');
-    
-        return redirect()->route('dashboard')->with('status', 'Logged out successfully. Note: There might be an issue with our external services.');
+
+        Log::info('Logout successful');
+        return response()->json([
+            'success' => true,
+            'message' => 'Anda telah berhasil keluar'
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Logout error: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Terjadi kesalahan saat logout: ' . $e->getMessage()
+        ], 500);
     }
+}
+
 
     public function profile()
     {

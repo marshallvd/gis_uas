@@ -8,7 +8,6 @@
     <meta name="author" content="">
     <title>Dashboard</title>
     @vite('resources/css/app.css')
-    <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 <body>
@@ -18,11 +17,7 @@
                 <a href="{{ route('dashboard') }}" class="btn btn-ghost text-xl">Jalanan</a>
             </div>
             <div class="flex-none">
-                <div class="dropdown dropdown-end">
-                    <div tabindex="0" class="mt-3 z-[1] card card-compact dropdown-content w-52 bg-base-100 shadow">
-                    </div>
-                </div>
-                @if (Auth::check())
+                @if (session('token'))
                     <div class="dropdown dropdown-end" id="profileDropdown">
                         <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
                             <div class="w-10 rounded-full">
@@ -37,15 +32,7 @@
                             </li>
                             <li><a>Settings</a></li>
                             <li>
-                                <form action="{{ route('logout') }}" method="POST" id="logoutForm">
-                                    @csrf
-                                    <button type="button" onclick="confirmLogout(event)">Logout</button>
-                                    @if(session('status'))
-                                        <div class="alert alert-success">
-                                            {{ session('status') }}
-                                        </div>
-                                    @endif
-                                </form>
+                                <button type="button" onclick="confirmLogout()">Logout</button>
                             </li>
                         </ul>
                     </div>
@@ -62,34 +49,37 @@
         @extends('layouts.footer')
     </div>
     @stack('javascript')
-    <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', (event) => {
-            @if(session('status'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: '{{ session('status') }}',
-                    timer: 3000,
-                    timerProgressBar: true,
-                    showConfirmButton: false
-                });
-            @endif
-
-            const profileDropdown = document.getElementById('profileDropdown');
-
-            if (profileDropdown) {
-                profileDropdown.addEventListener('click', () => {
-                    // Toggle visibility of dropdown menu
-                    const dropdownMenu = profileDropdown.querySelector('.dropdown-content');
-                    dropdownMenu.classList.toggle('hidden');
-                });
-            }
+            checkAuthStatus();
         });
 
-        function confirmLogout(event) {
-            event.preventDefault();
+        function checkAuthStatus() {
+            const token = sessionStorage.getItem('token');
+            const authButtons = document.getElementById('authButtons');
+            
+            if (token) {
+                authButtons.innerHTML = `
+                    <div class="dropdown dropdown-end" id="profileDropdown">
+                        <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+                            <div class="w-10 rounded-full">
+                                <img src="{{ asset('storage/logo/logo.jpeg') }}" alt="Logo" style="width: 100px; height: auto;">
+                            </div>
+                        </div>
+                        <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                            <li><a href="{{ route('profile') }}">Profile</a></li>
+                            <li><a>Settings</a></li>
+                            <li><button onclick="confirmLogout()">Logout</button></li>
+                        </ul>
+                    </div>
+                `;
+            } else {
+                authButtons.innerHTML = `<a href="{{ route('login') }}" class="btn btn-xs sm:btn-sm md:btn-md lg:btn-lg">Login</a>`;
+            }
+        }
+
+        function confirmLogout() {
             Swal.fire({
                 title: 'Yakin mau log out?',
                 text: "Kalau sudah log out gabisa balik lagi loh !",
@@ -100,21 +90,57 @@
                 confirmButtonText: 'Ya, logout!'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    localStorage.removeItem('token');
-                    document.getElementById('logoutForm').submit();
+                    logout();
                 }
             });
         }
 
-        function logout(event) {
-            event.preventDefault();
-            localStorage.removeItem('token');
-            if (event.target.closest('form').id === 'logoutForm') {
-                document.getElementById('logoutForm').submit();
-            } else {
-                document.getElementById('logoutFormSidebar').submit();
-            }
+        function logout() {
+    const token = sessionStorage.getItem('token');
+    fetch('{{ route('logout') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Authorization': `Bearer ${token}`
+        },
+        credentials: 'same-origin'
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
         }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            sessionStorage.removeItem('token');
+            Swal.fire({
+                icon: 'success',
+                title: 'Logout Berhasil',
+                text: data.message,
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: false
+            }).then(() => {
+                checkAuthStatus();
+                window.location.href = '{{ route('dashboard') }}';
+            });
+        } else {
+            throw new Error(data.message || 'Logout gagal');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Terjadi Kesalahan',
+            text: 'Gagal melakukan logout. Silakan coba lagi.',
+            timer: 3000,
+            timerProgressBar: true,
+            showConfirmButton: false
+        });
+    });
+}
     </script>
 </body>
 </html>
